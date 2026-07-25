@@ -1,3 +1,133 @@
 import './lib/theme.css';
+import './gallery.css';
+import { WORKS } from './works';
+import type { Work } from './types';
+import { getLocale, onLocaleChange, t, toggleLocale } from './lib/i18n';
 
-// TODO: F9
+const BASE = import.meta.env.BASE_URL;
+
+function workUrl(slug: string): string {
+  return `${BASE}works/${slug}.html`;
+}
+
+function thumbUrl(slug: string): string {
+  return `${BASE}thumbs/${slug}.png`;
+}
+
+function labelClass(label: string): string {
+  return `label-${label.toLowerCase()}`;
+}
+
+function createCard(work: Work): HTMLAnchorElement {
+  const card = document.createElement('a');
+  card.className = 'work-card';
+  card.href = workUrl(work.slug);
+
+  const thumb = document.createElement('div');
+  thumb.className = 'work-card-thumb is-empty';
+
+  const img = document.createElement('img');
+  img.loading = 'lazy';
+  img.decoding = 'async';
+  img.alt = '';
+  img.src = thumbUrl(work.slug);
+  // Until a real thumbnail exists (F13), a 404 leaves the themed placeholder.
+  img.addEventListener('error', () => {
+    img.remove();
+  });
+  img.addEventListener('load', () => {
+    thumb.classList.remove('is-empty');
+  });
+  thumb.append(img);
+
+  const body = document.createElement('div');
+  body.className = 'work-card-body';
+
+  const heading = document.createElement('div');
+  heading.className = 'work-card-heading';
+
+  const title = document.createElement('h2');
+  title.className = 'work-card-title';
+
+  const chip = document.createElement('span');
+  chip.className = `card-label-chip ${labelClass(work.label)}`;
+  chip.textContent = work.label;
+
+  heading.append(title, chip);
+
+  const meta = document.createElement('div');
+  meta.className = 'work-card-meta';
+  const date = document.createElement('span');
+  date.textContent = work.date;
+  meta.append(date);
+
+  body.append(heading, meta);
+  card.append(thumb, body);
+
+  const applyLocale = (): void => {
+    title.textContent = work.title[getLocale()];
+  };
+  applyLocale();
+  onLocaleChange(applyLocale);
+
+  return card;
+}
+
+function render(root: HTMLElement): void {
+  root.replaceChildren();
+
+  const shell = document.createElement('div');
+  shell.className = 'gallery-shell';
+
+  const topbar = document.createElement('header');
+  topbar.className = 'gallery-topbar';
+
+  const headline = document.createElement('div');
+  headline.className = 'gallery-headline';
+
+  const title = document.createElement('h1');
+  title.className = 'gallery-title';
+
+  const tagline = document.createElement('p');
+  tagline.className = 'gallery-tagline';
+
+  headline.append(title, tagline);
+
+  const localeToggle = document.createElement('button');
+  localeToggle.type = 'button';
+  localeToggle.className = 'gallery-locale-toggle';
+  localeToggle.addEventListener('click', toggleLocale);
+
+  topbar.append(headline, localeToggle);
+  shell.append(topbar);
+
+  if (WORKS.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'gallery-empty';
+    empty.textContent = 'No works yet.';
+    shell.append(empty);
+  } else {
+    const grid = document.createElement('div');
+    grid.className = 'gallery-grid';
+    for (const work of WORKS) {
+      grid.append(createCard(work));
+    }
+    shell.append(grid);
+  }
+
+  root.append(shell);
+
+  const applyLocale = (): void => {
+    title.textContent = t('galleryTitle');
+    tagline.textContent = t('galleryTagline');
+    localeToggle.textContent = getLocale() === 'en' ? '日本語' : 'English';
+  };
+  applyLocale();
+  onLocaleChange(applyLocale);
+}
+
+const root = document.getElementById('gallery');
+if (!root) {
+  throw new Error('Missing #gallery root');
+}
+render(root);
