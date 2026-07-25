@@ -2,7 +2,8 @@ import './lib/theme.css';
 import './gallery.css';
 import { WORKS } from './works';
 import type { Work } from './types';
-import { getLocale, onLocaleChange, t, toggleLocale } from './lib/i18n';
+import { getLocale, onLocaleChange, t } from './lib/i18n';
+import { createLocaleToggle } from './lib/locale-toggle';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -93,10 +94,8 @@ function render(root: HTMLElement): void {
 
   headline.append(title, tagline);
 
-  const localeToggle = document.createElement('button');
-  localeToggle.type = 'button';
-  localeToggle.className = 'gallery-locale-toggle';
-  localeToggle.addEventListener('click', toggleLocale);
+  const localeToggle = createLocaleToggle();
+  localeToggle.classList.add('gallery-locale-toggle');
 
   topbar.append(headline, localeToggle);
   shell.append(topbar);
@@ -120,7 +119,6 @@ function render(root: HTMLElement): void {
   const applyLocale = (): void => {
     title.textContent = t('galleryTitle');
     tagline.textContent = t('galleryTagline');
-    localeToggle.textContent = getLocale() === 'en' ? '日本語' : 'English';
   };
   applyLocale();
   onLocaleChange(applyLocale);

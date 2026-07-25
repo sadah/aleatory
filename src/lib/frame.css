@@ -11,6 +11,13 @@
   margin-bottom: var(--space-5);
 }
 
+.work-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;

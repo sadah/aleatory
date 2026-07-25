@@ -1,5 +1,6 @@
 import type { Work } from '../types';
-import { getLocale, onLocaleChange, t, toggleLocale } from './i18n';
+import { getLocale, onLocaleChange, t } from './i18n';
+import { createLocaleToggle } from './locale-toggle';
 import './theme.css';
 import './frame.css';
 
@@ -10,10 +11,6 @@ export interface FrameHandles {
   seedSlot: HTMLElement;
   exportSlot: HTMLElement;
   destroy(): void;
-}
-
-function otherLanguageName(): string {
-  return getLocale() === 'en' ? '日本語' : 'English';
 }
 
 function labelClass(label: string): string {
@@ -41,6 +38,12 @@ export function buildFrame(root: HTMLElement, work: Work): FrameHandles {
   const backText = document.createElement('span');
   backLink.append(backIcon, backText);
 
+  const localeToggle = createLocaleToggle();
+
+  const topBar = document.createElement('div');
+  topBar.className = 'work-topbar';
+  topBar.append(backLink, localeToggle);
+
   const titleRow = document.createElement('div');
   titleRow.className = 'work-title-row';
 
@@ -52,7 +55,7 @@ export function buildFrame(root: HTMLElement, work: Work): FrameHandles {
   labelChip.textContent = work.label;
 
   titleRow.append(title, labelChip);
-  header.append(backLink, titleRow);
+  header.append(topBar, titleRow);
 
   const stageWrap = document.createElement('div');
   stageWrap.className = 'stage-wrap';
@@ -102,12 +105,7 @@ export function buildFrame(root: HTMLElement, work: Work): FrameHandles {
   const exportSlot = document.createElement('div');
   exportSlot.className = 'export-slot';
 
-  const localeToggle = document.createElement('button');
-  localeToggle.className = 'locale-toggle';
-  localeToggle.type = 'button';
-  localeToggle.addEventListener('click', toggleLocale);
-
-  footer.append(seedSlot, exportSlot, localeToggle);
+  footer.append(seedSlot, exportSlot);
   root.append(description, header, stageWrap, controlsBar);
   if (about) {
     root.append(about);
@@ -119,7 +117,6 @@ export function buildFrame(root: HTMLElement, work: Work): FrameHandles {
     description.textContent = work.description[locale];
     title.textContent = work.title[locale];
     backText.textContent = t('backToGallery');
-    localeToggle.textContent = otherLanguageName();
     if (aboutContent || params) {
       aboutHeading.textContent = t('aboutHeading');
     }
