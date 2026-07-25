@@ -1,0 +1,120 @@
+import type { Locale } from '../types';
+
+const STORAGE_KEY = 'aleatory:locale';
+const DEFAULT_LOCALE: Locale = 'en';
+
+export const UI_STRINGS: Record<string, Record<Locale, string>> = {
+  backToGallery: {
+    en: 'Back to gallery',
+    ja: 'ギャラリーへ戻る',
+  },
+  play: {
+    en: 'Play',
+    ja: '再生',
+  },
+  pause: {
+    en: 'Pause',
+    ja: '一時停止',
+  },
+  reset: {
+    en: 'Reset',
+    ja: 'リセット',
+  },
+  seed: {
+    en: 'Seed',
+    ja: 'シード',
+  },
+  newSeed: {
+    en: 'New seed',
+    ja: '新しいシード',
+  },
+  applySeed: {
+    en: 'Apply seed',
+    ja: 'シードを適用',
+  },
+  seedInputLabel: {
+    en: 'Seed value',
+    ja: 'シード値',
+  },
+  downloadPng: {
+    en: 'Download PNG',
+    ja: 'PNGを保存',
+  },
+  record: {
+    en: 'Record',
+    ja: '録画',
+  },
+  stopRecording: {
+    en: 'Stop recording',
+    ja: '録画を停止',
+  },
+  videoChromeOnly: {
+    en: 'Video export: desktop Chrome only.',
+    ja: '動画書き出しはデスクトップ版Chromeのみ対応です。',
+  },
+  galleryTitle: {
+    en: 'aleatory',
+    ja: 'aleatory',
+  },
+  galleryTagline: {
+    en: 'Generative studies in chance, motion, and light.',
+    ja: '偶然、動き、光をめぐるジェネラティブ・スタディ。',
+  },
+};
+
+const subscribers = new Set<(locale: Locale) => void>();
+
+let currentLocale = readStoredLocale();
+
+function isLocale(value: string | null): value is Locale {
+  return value === 'en' || value === 'ja';
+}
+
+function readStoredLocale(): Locale {
+  if (typeof localStorage === 'undefined') {
+    return DEFAULT_LOCALE;
+  }
+
+  const stored = localStorage.getItem(STORAGE_KEY);
+  return isLocale(stored) ? stored : DEFAULT_LOCALE;
+}
+
+function persistLocale(locale: Locale): void {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY, locale);
+  }
+}
+
+export function getLocale(): Locale {
+  return currentLocale;
+}
+
+export function setLocale(locale: Locale): void {
+  currentLocale = locale;
+  persistLocale(locale);
+
+  for (const subscriber of subscribers) {
+    subscriber(locale);
+  }
+}
+
+export function toggleLocale(): void {
+  setLocale(currentLocale === 'en' ? 'ja' : 'en');
+}
+
+export function t(key: string): string {
+  const entry = UI_STRINGS[key];
+  if (!entry) {
+    return key;
+  }
+
+  return entry[currentLocale] ?? key;
+}
+
+export function onLocaleChange(cb: (locale: Locale) => void): () => void {
+  subscribers.add(cb);
+
+  return () => {
+    subscribers.delete(cb);
+  };
+}
