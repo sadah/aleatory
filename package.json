@@ -1,0 +1,19 @@
+{
+  "name": "aleatory",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tabler/icons-webfont": "^3.45.0",
+    "p5": "^1.9.4"
+  },
+  "devDependencies": {
+    "@types/p5": "^1.7.6",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.21"
+  }
+}
