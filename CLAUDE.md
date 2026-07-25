@@ -50,6 +50,10 @@ manifest fields render an explainer section via the shared frame. Aesthetic
 guidance: [`docs/taste-notes.md`](docs/taste-notes.md). Credit sources in
 [`CREDITS.md`](CREDITS.md).
 
+**Japanese copy** (work titles/descriptions/about/parameters) is written in
+polite form (ですます調), not plain (である) form. Put a half-width space between
+Japanese and adjacent Latin letters/numbers. English UI docs stay English.
+
 ## Deploy
 
 Automatic on push to `main` (GitHub Actions → Pages). No manual step. Git remote
