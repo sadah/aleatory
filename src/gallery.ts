@@ -11,7 +11,7 @@ function workUrl(slug: string): string {
 }
 
 function thumbUrl(slug: string): string {
-  return `${BASE}thumbs/${slug}.png`;
+  return `${BASE}thumbs/${slug}.jpg`;
 }
 
 function labelClass(label: string): string {
