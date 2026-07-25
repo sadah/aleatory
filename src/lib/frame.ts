@@ -64,6 +64,35 @@ export function buildFrame(root: HTMLElement, work: Work): FrameHandles {
   const controlsBar = document.createElement('div');
   controlsBar.className = 'controls-bar';
 
+  const aboutContent = work.about;
+  const params = work.parameters;
+  const aboutHeading = document.createElement('h2');
+  const aboutBody = document.createElement('div');
+  const paramsHeading = document.createElement('h3');
+  const paramsList = document.createElement('dl');
+  let about: HTMLElement | null = null;
+  if (aboutContent || params) {
+    about = document.createElement('section');
+    about.className = 'work-about';
+    aboutHeading.className = 'work-about-heading';
+    about.append(aboutHeading);
+    if (aboutContent) {
+      aboutBody.className = 'work-about-body';
+      about.append(aboutBody);
+    }
+    if (params) {
+      paramsHeading.className = 'work-params-heading';
+      paramsList.className = 'work-params';
+      for (const param of params) {
+        const dt = document.createElement('dt');
+        dt.textContent = param.term;
+        const dd = document.createElement('dd');
+        paramsList.append(dt, dd);
+      }
+      about.append(paramsHeading, paramsList);
+    }
+  }
+
   const footer = document.createElement('footer');
   footer.className = 'work-footer';
 
@@ -79,7 +108,11 @@ export function buildFrame(root: HTMLElement, work: Work): FrameHandles {
   localeToggle.addEventListener('click', toggleLocale);
 
   footer.append(seedSlot, exportSlot, localeToggle);
-  root.append(description, header, stageWrap, controlsBar, footer);
+  root.append(description, header, stageWrap, controlsBar);
+  if (about) {
+    root.append(about);
+  }
+  root.append(footer);
 
   const renderLocaleText = (): void => {
     const locale = getLocale();
@@ -87,6 +120,28 @@ export function buildFrame(root: HTMLElement, work: Work): FrameHandles {
     title.textContent = work.title[locale];
     backText.textContent = t('backToGallery');
     localeToggle.textContent = otherLanguageName();
+    if (aboutContent || params) {
+      aboutHeading.textContent = t('aboutHeading');
+    }
+    if (aboutContent) {
+      aboutBody.replaceChildren(
+        ...aboutContent[locale].map((paragraph) => {
+          const p = document.createElement('p');
+          p.textContent = paragraph;
+          return p;
+        }),
+      );
+    }
+    if (params) {
+      paramsHeading.textContent = t('parametersHeading');
+      const dds = paramsList.querySelectorAll('dd');
+      params.forEach((param, i) => {
+        const dd = dds[i];
+        if (dd) {
+          dd.textContent = param.desc[locale];
+        }
+      });
+    }
   };
 
   renderLocaleText();

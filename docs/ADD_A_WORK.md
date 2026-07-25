@@ -22,9 +22,26 @@ In [`src/works.ts`](../src/works.ts), append to `WORKS`:
     en: 'One-sentence English description (also used as the sr-only long text).',
     ja: '日本語の説明。',
   },
+  // Optional: visible "About this work" prose, one string per paragraph.
+  // The frame renders it below the controls; omit it for a bare piece.
+  about: {
+    en: ['First paragraph — what it is and the intent.', 'Second paragraph.'],
+    ja: ['一段落目。作品の意図。', '二段落目。'],
+  },
+  // Optional: a parameter glossary rendered as a definition list under About.
+  // `term` matches the on-screen control label (shared across locales).
+  parameters: [
+    { term: 'Density', desc: { en: 'What the Density slider does.', ja: 'Density スライダーの説明。' } },
+  ],
   tags: ['field', 'particles', 'glow'],
 }
 ```
+
+Both `about` and `parameters` are optional. When present, the shared frame shows
+an **About this work** section (prose + a **Parameters** list) below the controls,
+and re-renders it on locale change — so explaining a piece is manifest-only, no
+per-page markup. Explaining the intent and the controls helps viewers; the Lorenz
+entry in `src/works.ts` is a worked example.
 
 ## 2. Add the HTML entry
 

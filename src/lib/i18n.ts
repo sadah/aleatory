@@ -8,6 +8,14 @@ export const UI_STRINGS: Record<string, Record<Locale, string>> = {
     en: 'Back to gallery',
     ja: 'ギャラリーへ戻る',
   },
+  aboutHeading: {
+    en: 'About this work',
+    ja: 'この作品について',
+  },
+  parametersHeading: {
+    en: 'Parameters',
+    ja: 'パラメーター',
+  },
   play: {
     en: 'Play',
     ja: '再生',
