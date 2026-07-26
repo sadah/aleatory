@@ -4,6 +4,7 @@ import { WORKS } from './works';
 import type { Work } from './types';
 import { getLocale, onLocaleChange, t } from './lib/i18n';
 import { createLocaleToggle } from './lib/locale-toggle';
+import { createPaletteToggle } from './lib/palette-picker';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -97,7 +98,11 @@ function render(root: HTMLElement): void {
   const localeToggle = createLocaleToggle();
   localeToggle.classList.add('gallery-locale-toggle');
 
-  topbar.append(headline, localeToggle);
+  const topbarControls = document.createElement('div');
+  topbarControls.className = 'topbar-controls';
+  topbarControls.append(createPaletteToggle(), localeToggle);
+
+  topbar.append(headline, topbarControls);
   shell.append(topbar);
 
   if (WORKS.length === 0) {

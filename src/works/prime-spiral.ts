@@ -5,6 +5,17 @@ import { createRecordButton } from '../lib/export-video';
 import { buildFrame } from '../lib/frame';
 import { createSeedUI, makeRng } from '../lib/seed';
 import { onLocaleChange, t } from '../lib/i18n';
+import {
+  makeRamp,
+  onPaletteChange,
+  rampGradientCss,
+  resolveChrome,
+  resolveColor,
+  resolveRamp,
+  rgbCsv,
+  type ColorSpec,
+  type RampProfile,
+} from '../lib/palette';
 import { WORKS } from '../works';
 
 const work = WORKS.find((w) => w.slug === 'prime-spiral');
@@ -59,9 +70,11 @@ const MERIT_MAX = 3.2;
 /** Tuned against the measured merit distribution: ~86% of stars stay cool, ~2% go hot. */
 const MERIT_GAMMA = 1.7;
 
-const LINK_STROKE = 'rgba(120,180,255,0.22)';
+/** The arc web between near neighbours. */
+const LINK_SPEC: ColorSpec = { side: 'cool', dh: -5.38, l: 0.7595, c: 0.1254 };
 const LINK_WIDTH = 1.3;
-const GRID_STROKE = 'rgba(120,145,210,0.13)';
+/** The polar reference grid. */
+const GRID_SPEC: ColorSpec = { side: 'cool', dh: 7.54, l: 0.6638, c: 0.1013 };
 const GRID_WIDTH = 1.1;
 const GRID_RINGS = [0.25, 0.5, 0.75, 1];
 const GRID_SPOKES = 12;
@@ -79,49 +92,61 @@ interface StarStyle {
  * only the rare wide gaps warm up. Restraint over saturation: a low-chroma field
  * with a handful of hot stars reads as luminous.
  */
-const rampStops: Array<{ x: number; rgb: [number, number, number] }> = [
-  { x: 0, rgb: [176, 202, 255] },
-  { x: 0.28, rgb: [214, 228, 255] },
-  { x: 0.5, rgb: [255, 250, 235] },
-  { x: 0.7, rgb: [255, 232, 175] },
-  { x: 0.86, rgb: [255, 190, 105] },
-  { x: 1, rgb: [255, 140, 70] },
+const RAMP_PROFILE: RampProfile = [
+  { x: 0, side: 'cool', dh: 4.34, l: 0.8382, c: 0.0799 },
+  { x: 0.28, side: 'cool', dh: 3.66, l: 0.9167, c: 0.0399 },
+  { x: 0.5, side: 'hot', dh: 31.58, l: 0.9849, c: 0.0204 },
+  { x: 0.7, side: 'hot', dh: 28.6, l: 0.9362, c: 0.077 },
+  { x: 0.86, side: 'hot', dh: 12.01, l: 0.8446, c: 0.1265 },
+  { x: 1, side: 'hot', dh: -10.59, l: 0.7539, c: 0.1621 },
 ];
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
 
-function ramp(value: number): [number, number, number] {
-  const v = clamp01(value);
+let starStyles: StarStyle[] = [];
+let linkStroke = '';
+let gridStroke = '';
+let groundInner = '';
+let groundOuter = '';
+let legendBar: HTMLDivElement | null = null;
 
-  for (let i = 0; i < rampStops.length - 1; i += 1) {
-    const a = rampStops[i];
-    const b = rampStops[i + 1];
-    if (v >= a.x && v <= b.x) {
-      const localT = (v - a.x) / (b.x - a.x);
-      return [
-        Math.round(a.rgb[0] + (b.rgb[0] - a.rgb[0]) * localT),
-        Math.round(a.rgb[1] + (b.rgb[1] - a.rgb[1]) * localT),
-        Math.round(a.rgb[2] + (b.rgb[2] - a.rgb[2]) * localT),
-      ];
-    }
+/**
+ * Re-resolve every palette-derived colour.
+ *
+ * The `cachedK = -1` at the end is load-bearing: `coreRadius` and `glowRadius`
+ * are baked into Path2D geometry by `rebuildPaths`, which normally only reruns
+ * when the reveal front moves. Without invalidating it, a palette swap on a
+ * settled field would leave the stars their old colour indefinitely.
+ */
+function rebuildPaletteStyles(): void {
+  const ramp = makeRamp(RAMP_PROFILE);
+  starStyles = Array.from({ length: NC }, (_, c): StarStyle => {
+    const ratio = c / (NC - 1);
+    const [r, g, b] = ramp(ratio);
+    return {
+      coreRgb: `${r},${g},${b}`,
+      coreAlpha: 0.88 + 0.12 * ratio,
+      coreRadius: 2.1 + 1 * ratio,
+      glowFill: `rgba(${r},${g},${b},${(0.075 + 0.075 * ratio).toFixed(3)})`,
+      glowRadius: 5 + 3 * ratio,
+    };
+  });
+
+  linkStroke = `rgba(${rgbCsv(resolveColor(LINK_SPEC))},0.22)`;
+  gridStroke = `rgba(${rgbCsv(resolveColor(GRID_SPEC))},0.13)`;
+
+  const chrome = resolveChrome();
+  groundInner = `rgb(${rgbCsv(chrome.ground[3])})`;
+  groundOuter = `rgb(${rgbCsv(chrome.ground[1])})`;
+
+  if (legendBar) {
+    legendBar.style.background = `linear-gradient(90deg, ${rampGradientCss(resolveRamp(RAMP_PROFILE))})`;
   }
 
-  return rampStops[rampStops.length - 1].rgb;
+  cachedK = -1;
 }
-
-const starStyles = Array.from({ length: NC }, (_, c): StarStyle => {
-  const ratio = c / (NC - 1);
-  const [r, g, b] = ramp(ratio);
-  return {
-    coreRgb: `${r},${g},${b}`,
-    coreAlpha: 0.88 + 0.12 * ratio,
-    coreRadius: 2.1 + 1 * ratio,
-    glowFill: `rgba(${r},${g},${b},${(0.075 + 0.075 * ratio).toFixed(3)})`,
-    glowRadius: 5 + 3 * ratio,
-  };
-});
 
 let canvasElement: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
@@ -171,6 +196,11 @@ let glowCounts = new Int32Array(NC);
 let corePaths: Path2D[] = [];
 let coreCounts = new Int32Array(NC * NT);
 let overlayText = '';
+
+// Deferred to here rather than beside rebuildPaletteStyles: it assigns cachedK,
+// which is a `let` declared above and would be in its temporal dead zone.
+rebuildPaletteStyles();
+onPaletteChange(rebuildPaletteStyles);
 
 function primesFor(limit: number): Int32Array {
   if (limit === cachedSieveMax) {
@@ -395,8 +425,8 @@ function rebuildPaths(K: number): void {
 
 function drawBackground(activeCtx: CanvasRenderingContext2D): void {
   const gradient = activeCtx.createRadialGradient(CX, CY, 0, CX, CY, R * 1.25);
-  gradient.addColorStop(0, '#070918');
-  gradient.addColorStop(1, '#03040b');
+  gradient.addColorStop(0, groundInner);
+  gradient.addColorStop(1, groundOuter);
   activeCtx.fillStyle = gradient;
   activeCtx.fillRect(0, 0, SIZE, SIZE);
 }
@@ -404,7 +434,7 @@ function drawBackground(activeCtx: CanvasRenderingContext2D): void {
 function drawGrid(activeCtx: CanvasRenderingContext2D): void {
   activeCtx.save();
   activeCtx.translate(CX, CY);
-  activeCtx.strokeStyle = GRID_STROKE;
+  activeCtx.strokeStyle = gridStroke;
   activeCtx.lineWidth = GRID_WIDTH;
 
   for (const f of GRID_RINGS) {
@@ -465,7 +495,7 @@ export function renderFrame(n: number): void {
   activeCtx.globalCompositeOperation = 'lighter';
 
   if (edgePath) {
-    activeCtx.strokeStyle = LINK_STROKE;
+    activeCtx.strokeStyle = linkStroke;
     activeCtx.lineWidth = LINK_WIDTH;
     activeCtx.stroke(edgePath);
   }
@@ -540,9 +570,10 @@ function installOverlay(): HTMLDivElement {
 
   const bar = document.createElement('div');
   bar.className = 'prime-spiral-legend-bar';
-  bar.style.background = `linear-gradient(90deg, ${rampStops
-    .map((s) => `rgb(${s.rgb.join(',')}) ${(s.x * 100).toFixed(0)}%`)
-    .join(', ')})`;
+  bar.style.background = `linear-gradient(90deg, ${rampGradientCss(resolveRamp(RAMP_PROFILE))})`;
+  // Held so rebuildPaletteStyles can repaint it; the gradient must not drift
+  // from what the canvas is actually drawing.
+  legendBar = bar;
 
   const text = document.createElement('div');
   text.className = 'prime-spiral-legend-text';

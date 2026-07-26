@@ -1,0 +1,114 @@
+/*
+ * Lives here rather than in frame.css because the gallery does not import
+ * frame.css, and both pages reach this sheet through palette-picker.ts.
+ */
+.topbar-controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.palette-toggle {
+  position: relative;
+  flex: none;
+}
+
+.palette-toggle-button {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: 0.88rem;
+}
+
+.palette-popover {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: var(--space-3);
+  width: max-content;
+  min-width: 232px;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-lg);
+  box-shadow:
+    0 22px 60px -24px rgb(0 0 0 / 0.72),
+    0 0 40px rgb(var(--accent-rgb) / 0.10);
+}
+
+.palette-popover[hidden] {
+  display: none;
+}
+
+.palette-presets {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.palette-option {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-secondary);
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.palette-option:hover {
+  background: rgb(var(--ground-5-rgb));
+}
+
+/* The radio itself is sr-only, so the checked state has to be visible here. */
+.palette-option:has(input:checked) {
+  color: var(--color-text-primary);
+  background: rgb(var(--accent-rgb) / 0.12);
+}
+
+.palette-option:has(input:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.palette-swatch {
+  height: 14px;
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: 999px;
+}
+
+.palette-custom {
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-tertiary);
+}
+
+.palette-custom .control-slider {
+  grid-template-columns: auto minmax(96px, 1fr) minmax(40px, auto);
+  min-height: 30px;
+  font-size: 0.84rem;
+}
+
+@media (max-width: 640px) {
+  .palette-popover {
+    right: auto;
+    left: 0;
+  }
+
+  .palette-custom .control-slider {
+    grid-template-columns: 1fr auto;
+  }
+
+  .palette-custom .control-slider input {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

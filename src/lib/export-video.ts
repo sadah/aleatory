@@ -1,5 +1,6 @@
 import { createButton, type ButtonHandle } from './controls';
 import { onLocaleChange, t } from './i18n';
+import { onPaletteChange, resolveChrome, rgbHex } from './palette';
 
 const VIDEO_WIDTH = 1080;
 const VIDEO_HEIGHT = 1920;
@@ -7,12 +8,21 @@ const SOURCE_SIZE = 1080;
 const SOURCE_Y = (VIDEO_HEIGHT - SOURCE_SIZE) / 2;
 const DEFAULT_FPS = 30;
 const DEFAULT_DURATION_MS = 12_000;
-const DEFAULT_BACKGROUND_COLOR = '#03040a';
 const MIME_TYPE_CANDIDATES = [
   'video/webm;codecs=vp9',
   'video/webm;codecs=vp8',
   'video/webm',
 ] as const;
+
+/**
+ * The letterbox fill for the 1080x1920 export — the page background the square
+ * art already sits on. Held at module level and refreshed on palette change:
+ * capturing it per button would go stale the moment the palette moved.
+ */
+let paletteBackground = rgbHex(resolveChrome().ground[1]);
+onPaletteChange(() => {
+  paletteBackground = rgbHex(resolveChrome().ground[1]);
+});
 
 let compositeCanvas: HTMLCanvasElement | null = null;
 
@@ -90,7 +100,6 @@ function downloadBlob(blob: Blob, filename: string): void {
 export function createRecordButton(opts: RecordButtonOptions): ButtonHandle {
   const fps = opts.fps ?? DEFAULT_FPS;
   const durationMs = opts.durationMs ?? DEFAULT_DURATION_MS;
-  const backgroundColor = opts.backgroundColor ?? DEFAULT_BACKGROUND_COLOR;
   const mimeType = getSupportedMimeType();
 
   let isRecording = false;
@@ -113,7 +122,7 @@ export function createRecordButton(opts: RecordButtonOptions): ButtonHandle {
   };
 
   const renderFrame = (source: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void => {
-    ctx.fillStyle = backgroundColor;
+    ctx.fillStyle = opts.backgroundColor ?? paletteBackground;
     ctx.fillRect(0, 0, VIDEO_WIDTH, VIDEO_HEIGHT);
     ctx.drawImage(source, 0, SOURCE_Y, SOURCE_SIZE, SOURCE_SIZE);
   };

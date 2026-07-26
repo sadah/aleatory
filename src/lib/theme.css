@@ -1,15 +1,36 @@
 @import "@tabler/icons-webfont/dist/tabler-icons.min.css";
 
 :root {
-  --color-bg: #03040a;
-  --color-surface: #05060e;
-  --color-surface-raised: #0a0c18;
+  /*
+   * Palette-driven channel triples. These literals are the default (Ember)
+   * values and act as the pre-JS fallback; `applyPaletteTokens` in
+   * src/lib/palette.ts overwrites them on the root element at boot.
+   *
+   * The ground ladder is one near-black family, dark to light:
+   *   0 stage interior | 1 page background, sketch gradient outer, video
+   *   letterbox | 2 surface | 3 sketch gradient inner | 4 raised surface |
+   *   5 button hover
+   */
+  --ground-0-rgb: 1 2 8;
+  --ground-1-rgb: 3 4 10;
+  --ground-2-rgb: 5 6 14;
+  --ground-3-rgb: 7 10 24;
+  --ground-4-rgb: 10 12 24;
+  --ground-5-rgb: 16 19 38;
+  --accent-rgb: 91 140 255;
+  /* The two-point wash behind a gallery card with no thumbnail yet. */
+  --ramp-cool-rgb: 120 170 255;
+  --ramp-hot-rgb: 255 170 90;
+
+  --color-bg: rgb(var(--ground-1-rgb));
+  --color-surface: rgb(var(--ground-2-rgb));
+  --color-surface-raised: rgb(var(--ground-4-rgb));
   --color-border-tertiary: rgba(150, 170, 220, 0.14);
   --color-border-secondary: rgba(165, 185, 235, 0.24);
   --color-text-primary: rgba(225, 232, 250, 0.94);
   --color-text-secondary: rgba(200, 212, 245, 0.66);
   --color-text-tertiary: rgba(190, 205, 240, 0.42);
-  --color-accent: #5b8cff;
+  --color-accent: rgb(var(--accent-rgb));
   --border-radius-lg: 14px;
   --border-radius-md: 8px;
   --border-radius-sm: 4px;
@@ -39,7 +60,7 @@ body {
   margin: 0;
   color: var(--color-text-primary);
   background:
-    radial-gradient(circle at 50% 0%, rgba(91, 140, 255, 0.10), transparent 36rem),
+    radial-gradient(circle at 50% 0%, rgb(var(--accent-rgb) / 0.10), transparent 36rem),
     var(--color-bg);
   font-family: var(--font-sans);
   line-height: 1.5;
@@ -78,7 +99,7 @@ button {
 }
 
 button:hover:not(:disabled) {
-  background: #101326;
+  background: rgb(var(--ground-5-rgb));
   border-color: var(--color-border-secondary);
 }
 
@@ -122,7 +143,7 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--color-text-primary);
   border: 1px solid rgba(255, 255, 255, 0.36);
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(91, 140, 255, 0.42);
+  box-shadow: 0 0 12px rgb(var(--accent-rgb) / 0.42);
 }
 
 input[type="range"]::-moz-range-track {
@@ -138,7 +159,7 @@ input[type="range"]::-moz-range-thumb {
   background: var(--color-text-primary);
   border: 1px solid rgba(255, 255, 255, 0.36);
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(91, 140, 255, 0.42);
+  box-shadow: 0 0 12px rgb(var(--accent-rgb) / 0.42);
 }
 
 input[type="number"],

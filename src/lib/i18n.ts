@@ -60,6 +60,30 @@ export const UI_STRINGS: Record<string, Record<Locale, string>> = {
     en: 'Video export: desktop Chrome only.',
     ja: '動画書き出しはデスクトップ版Chromeのみ対応です。',
   },
+  palette: {
+    en: 'Palette',
+    ja: 'パレット',
+  },
+  paletteDialogLabel: {
+    en: 'Colour palette',
+    ja: 'カラーパレット',
+  },
+  paletteCustom: {
+    en: 'Custom',
+    ja: 'カスタム',
+  },
+  paletteCoolHue: {
+    en: 'Cool hue',
+    ja: '寒色の色相',
+  },
+  paletteHotHue: {
+    en: 'Hot hue',
+    ja: '暖色の色相',
+  },
+  paletteChroma: {
+    en: 'Chroma',
+    ja: '彩度',
+  },
   galleryTitle: {
     en: 'aleatory',
     ja: 'aleatory',

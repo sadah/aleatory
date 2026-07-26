@@ -5,6 +5,17 @@ import { createRecordButton } from '../lib/export-video';
 import { buildFrame } from '../lib/frame';
 import { createSeedUI, makeRng } from '../lib/seed';
 import { onLocaleChange, t } from '../lib/i18n';
+import {
+  makeRamp,
+  onPaletteChange,
+  rampGradientCss,
+  resolveChrome,
+  resolveColor,
+  resolveRamp,
+  rgbCsv,
+  type ColorSpec,
+  type RampProfile,
+} from '../lib/palette';
 import { WORKS } from '../works';
 
 const work = WORKS.find((w) => w.slug === 'lorenz-attractor');
@@ -55,24 +66,57 @@ interface BucketStyle {
   width: number;
 }
 
-const rampStops: Array<{ x: number; rgb: [number, number, number] }> = [
-  { x: 0, rgb: [25, 55, 150] },
-  { x: 0.3, rgb: [50, 130, 235] },
-  { x: 0.55, rgb: [150, 210, 250] },
-  { x: 0.74, rgb: [255, 250, 235] },
-  { x: 0.88, rgb: [255, 185, 80] },
-  { x: 1, rgb: [255, 140, 30] },
+/**
+ * Speed as colour: a deep cool start climbing through white-hot to a warm tip.
+ * Lightness and chroma are this piece's own, measured in OKLCH from the RGB it
+ * used to hardcode; the palette supplies only the two hue anchors.
+ */
+const RAMP_PROFILE: RampProfile = [
+  { x: 0, side: 'cool', dh: 5.54, l: 0.3818, c: 0.1596 },
+  { x: 0.3, side: 'cool', dh: -3.21, l: 0.613, c: 0.1763 },
+  { x: 0.55, side: 'cool', dh: -21.76, l: 0.8371, c: 0.0833 },
+  { x: 0.74, side: 'hot', dh: 31.58, l: 0.9849, c: 0.0204 },
+  { x: 0.88, side: 'hot', dh: 14.27, l: 0.8326, c: 0.1435 },
+  { x: 1, side: 'hot', dh: -3.58, l: 0.7513, c: 0.175 },
 ];
 
-const bucketStyles = Array.from({ length: NB }, (_, b): BucketStyle => {
-  const ratio = b / (NB - 1);
-  const [r, g, blue] = ramp(ratio);
-  return {
-    color: `${r},${g},${blue}`,
-    alpha: 0.32 + 0.5 * ratio,
-    width: 0.9 + 1.1 * ratio,
-  };
-});
+/** The two additive discs at the trajectory head — off-ramp, hand-picked. */
+const HEAD_HALO: ColorSpec = { side: 'hot', dh: 17.93, l: 0.8874, c: 0.1011 };
+const HEAD_CORE: ColorSpec = { side: 'hot', dh: 30.42, l: 0.9431, c: 0.0736 };
+
+let bucketStyles: BucketStyle[] = [];
+let headHaloFill = '';
+let headCoreFill = '';
+let groundInner = '';
+let groundOuter = '';
+let legendBarElement: HTMLDivElement | null = null;
+
+function rebuildPaletteStyles(): void {
+  const ramp = makeRamp(RAMP_PROFILE);
+  bucketStyles = Array.from({ length: NB }, (_, b): BucketStyle => {
+    const ratio = b / (NB - 1);
+    const [r, g, blue] = ramp(ratio);
+    return {
+      color: `${r},${g},${blue}`,
+      alpha: 0.32 + 0.5 * ratio,
+      width: 0.9 + 1.1 * ratio,
+    };
+  });
+
+  headHaloFill = `rgba(${rgbCsv(resolveColor(HEAD_HALO))},0.25)`;
+  headCoreFill = `rgba(${rgbCsv(resolveColor(HEAD_CORE))},0.9)`;
+
+  const chrome = resolveChrome();
+  groundInner = `rgb(${rgbCsv(chrome.ground[3])})`;
+  groundOuter = `rgb(${rgbCsv(chrome.ground[1])})`;
+
+  if (legendBarElement) {
+    legendBarElement.style.background = `linear-gradient(90deg, ${rampGradientCss(resolveRamp(RAMP_PROFILE))})`;
+  }
+}
+
+rebuildPaletteStyles();
+onPaletteChange(rebuildPaletteStyles);
 
 let canvasElement: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
@@ -102,29 +146,6 @@ function clamp(value: number, min: number, max: number): number {
 
 function clamp01(value: number): number {
   return clamp(value, 0, 1);
-}
-
-function lerp(a: number, b: number, tValue: number): number {
-  return a + (b - a) * tValue;
-}
-
-function ramp(value: number): [number, number, number] {
-  const v = clamp01(value);
-
-  for (let i = 0; i < rampStops.length - 1; i += 1) {
-    const a = rampStops[i];
-    const b = rampStops[i + 1];
-    if (v >= a.x && v <= b.x) {
-      const localT = (v - a.x) / (b.x - a.x);
-      return [
-        Math.round(lerp(a.rgb[0], b.rgb[0], localT)),
-        Math.round(lerp(a.rgb[1], b.rgb[1], localT)),
-        Math.round(lerp(a.rgb[2], b.rgb[2], localT)),
-      ];
-    }
-  }
-
-  return rampStops[rampStops.length - 1].rgb;
 }
 
 function deriv(point: Point3): Point3 {
@@ -234,20 +255,20 @@ function bucketForSpeed(speed: number, min: number, max: number): number {
 
 function drawBackground(activeCtx: CanvasRenderingContext2D): void {
   const gradient = activeCtx.createRadialGradient(CX, CY, 0, CX, CY, R * 1.3);
-  gradient.addColorStop(0, '#070a18');
-  gradient.addColorStop(1, '#02030a');
+  gradient.addColorStop(0, groundInner);
+  gradient.addColorStop(1, groundOuter);
   activeCtx.fillStyle = gradient;
   activeCtx.fillRect(0, 0, SIZE, SIZE);
 }
 
 function drawHead(activeCtx: CanvasRenderingContext2D, head: ScreenPoint): void {
   activeCtx.globalCompositeOperation = 'lighter';
-  activeCtx.fillStyle = 'rgba(255,210,140,0.25)';
+  activeCtx.fillStyle = headHaloFill;
   activeCtx.beginPath();
   activeCtx.arc(head.x, head.y, 14, 0, Math.PI * 2);
   activeCtx.fill();
 
-  activeCtx.fillStyle = 'rgba(255,235,180,0.9)';
+  activeCtx.fillStyle = headCoreFill;
   activeCtx.beginPath();
   activeCtx.arc(head.x, head.y, 6.4, 0, Math.PI * 2);
   activeCtx.fill();
@@ -347,6 +368,11 @@ function installLorenzOverlays(): HTMLDivElement {
 
   const legendBar = document.createElement('div');
   legendBar.className = 'lorenz-legend-bar';
+  // Generated from the profile, never written out by hand: this gradient used
+  // to be a second copy of the ramp inside the injected stylesheet, which would
+  // silently desync the moment the palette moved.
+  legendBar.style.background = `linear-gradient(90deg, ${rampGradientCss(resolveRamp(RAMP_PROFILE))})`;
+  legendBarElement = legendBar;
 
   const legendText = document.createElement('div');
   legendText.className = 'lorenz-legend-text';
@@ -390,8 +416,7 @@ function installLorenzStyles(): void {
     .lorenz-legend-bar {
       height: 7px;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgb(25, 55, 150), rgb(50, 130, 235), rgb(150, 210, 250), rgb(255, 250, 235), rgb(255, 185, 80), rgb(255, 140, 30));
-      box-shadow: 0 0 16px rgba(100, 170, 255, 0.22);
+      box-shadow: 0 0 16px rgb(var(--accent-rgb) / 0.22);
     }
 
     .lorenz-legend-text {

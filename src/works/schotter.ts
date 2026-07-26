@@ -5,6 +5,15 @@ import { createRecordButton } from '../lib/export-video';
 import { buildFrame } from '../lib/frame';
 import { createSeedUI, makeRng } from '../lib/seed';
 import { onLocaleChange, t } from '../lib/i18n';
+import {
+  makeRamp,
+  onPaletteChange,
+  resolveChrome,
+  resolveColor,
+  rgbCsv,
+  type ColorSpec,
+  type RampProfile,
+} from '../lib/palette';
 import { WORKS } from '../works';
 
 const work = WORKS.find((w) => w.slug === 'schotter');
@@ -68,13 +77,24 @@ interface Pose {
   a: number;
 }
 
-const rampStops: Array<{ x: number; rgb: [number, number, number] }> = [
-  { x: 0, rgb: [200, 220, 255] },
-  { x: 0.28, rgb: [232, 240, 255] },
-  { x: 0.54, rgb: [255, 246, 225] },
-  { x: 0.78, rgb: [255, 206, 130] },
-  { x: 1, rgb: [255, 150, 70] },
+/**
+ * Cool at rest, warm where a square is moving fastest. Lightness and chroma are
+ * the ones this piece shipped with, measured in OKLCH; the palette supplies the
+ * two hue anchors. See src/lib/palette.ts for why the ramp is split by side
+ * rather than interpolated across a single hue axis.
+ */
+const RAMP_PROFILE: RampProfile = [
+  { x: 0, side: 'cool', dh: 1.66, l: 0.8909, c: 0.053 },
+  { x: 0.28, side: 'cool', dh: 3.19, l: 0.9535, c: 0.0219 },
+  { x: 0.54, side: 'hot', dh: 27.54, l: 0.9746, c: 0.0292 },
+  { x: 0.78, side: 'hot', dh: 17.57, l: 0.8782, c: 0.1091 },
+  { x: 1, side: 'hot', dh: -5.18, l: 0.7702, c: 0.1564 },
 ];
+
+/** The reference lattice outline behind the collapse. */
+const LATTICE_SPEC: ColorSpec = { side: 'cool', dh: 4.05, l: 0.8469, c: 0.0753 };
+/** The trail layers, re-evaluated at earlier frames rather than left on canvas. */
+const GHOST_SPEC: ColorSpec = { side: 'cool', dh: 3.82, l: 0.7856, c: 0.0922 };
 
 const squarePath = new Path2D();
 squarePath.rect(-HALF_EDGE, -HALF_EDGE, EDGE, EDGE);
@@ -125,37 +145,34 @@ function smoothstep01(value: number): number {
   return tValue * tValue * (3 - 2 * tValue);
 }
 
-function lerp(a: number, b: number, tValue: number): number {
-  return a + (b - a) * tValue;
+let strokeStyles: Array<{ rgb: string; alpha: number }> = [];
+let latticeStroke = '';
+let ghostRgb = '';
+let groundInner = '';
+let groundOuter = '';
+
+/** Re-resolve every palette-derived colour. Cheap; runs once at init and on swap. */
+function rebuildPaletteStyles(): void {
+  const ramp = makeRamp(RAMP_PROFILE);
+  strokeStyles = Array.from({ length: NC }, (_, c) => {
+    const ratio = c / (NC - 1);
+    const [r, g, b] = ramp(ratio);
+    return {
+      rgb: `${r},${g},${b}`,
+      alpha: 0.62 + 0.28 * ratio,
+    };
+  });
+
+  latticeStroke = `rgba(${rgbCsv(resolveColor(LATTICE_SPEC))},0.12)`;
+  ghostRgb = rgbCsv(resolveColor(GHOST_SPEC));
+
+  const chrome = resolveChrome();
+  groundInner = `rgb(${rgbCsv(chrome.ground[3])})`;
+  groundOuter = `rgb(${rgbCsv(chrome.ground[1])})`;
 }
 
-function ramp(value: number): [number, number, number] {
-  const v = clamp01(value);
-
-  for (let i = 0; i < rampStops.length - 1; i += 1) {
-    const a = rampStops[i];
-    const b = rampStops[i + 1];
-    if (v >= a.x && v <= b.x) {
-      const localT = (v - a.x) / (b.x - a.x);
-      return [
-        Math.round(lerp(a.rgb[0], b.rgb[0], localT)),
-        Math.round(lerp(a.rgb[1], b.rgb[1], localT)),
-        Math.round(lerp(a.rgb[2], b.rgb[2], localT)),
-      ];
-    }
-  }
-
-  return rampStops[rampStops.length - 1].rgb;
-}
-
-const strokeStyles = Array.from({ length: NC }, (_, c) => {
-  const ratio = c / (NC - 1);
-  const [r, g, b] = ramp(ratio);
-  return {
-    rgb: `${r},${g},${b}`,
-    alpha: 0.62 + 0.28 * ratio,
-  };
-});
+rebuildPaletteStyles();
+onPaletteChange(rebuildPaletteStyles);
 
 let collapseFrames = BASE_COLLAPSE;
 let reformFrames = BASE_REFORM;
@@ -269,8 +286,8 @@ function addSquare(path: Path2D, pose: Pose): void {
 
 function drawBackground(activeCtx: CanvasRenderingContext2D): void {
   const gradient = activeCtx.createRadialGradient(CX, CY, 0, CX, CY, SIZE * 0.58);
-  gradient.addColorStop(0, '#070918');
-  gradient.addColorStop(1, '#03040b');
+  gradient.addColorStop(0, groundInner);
+  gradient.addColorStop(1, groundOuter);
   activeCtx.fillStyle = gradient;
   activeCtx.fillRect(0, 0, SIZE, SIZE);
 }
@@ -281,7 +298,7 @@ function drawLattice(activeCtx: CanvasRenderingContext2D): void {
     addSquare(path, { x: latticeX[i], y: latticeY[i], a: 0 });
   }
 
-  activeCtx.strokeStyle = 'rgba(180,205,255,0.12)';
+  activeCtx.strokeStyle = latticeStroke;
   activeCtx.lineWidth = LATTICE_WIDTH / scale;
   activeCtx.stroke(path);
 }
@@ -299,7 +316,7 @@ function drawGhostLayer(activeCtx: CanvasRenderingContext2D, n: number, k: numbe
 
   const tValue = 1 - k / (ghosts + 1);
   const alpha = 0.12 * tValue * tValue;
-  activeCtx.strokeStyle = `rgba(155,185,245,${alpha.toFixed(3)})`;
+  activeCtx.strokeStyle = `rgba(${ghostRgb},${alpha.toFixed(3)})`;
   activeCtx.lineWidth = STROKE_WIDTH / scale;
   activeCtx.stroke(path);
 }

@@ -1,6 +1,7 @@
 import type { Work } from '../types';
 import { getLocale, onLocaleChange, t } from './i18n';
 import { createLocaleToggle } from './locale-toggle';
+import { createPaletteToggle } from './palette-picker';
 import './theme.css';
 import './frame.css';
 
@@ -38,11 +39,15 @@ export function buildFrame(root: HTMLElement, work: Work): FrameHandles {
   const backText = document.createElement('span');
   backLink.append(backIcon, backText);
 
-  const localeToggle = createLocaleToggle();
+  // Both topbars are space-between with two children; grouping the controls
+  // keeps that layout and leaves the language switch as the rightmost anchor.
+  const topbarControls = document.createElement('div');
+  topbarControls.className = 'topbar-controls';
+  topbarControls.append(createPaletteToggle(), createLocaleToggle());
 
   const topBar = document.createElement('div');
   topBar.className = 'work-topbar';
-  topBar.append(backLink, localeToggle);
+  topBar.append(backLink, topbarControls);
 
   const titleRow = document.createElement('div');
   titleRow.className = 'work-title-row';
