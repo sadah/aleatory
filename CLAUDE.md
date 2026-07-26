@@ -68,6 +68,26 @@ is SSH, so pushing `.github/workflows/*` needs no `workflow` token scope.
 
 ## Delegation notes
 
-Heavy implementation can be delegated to the Codex rescue subagent, but the
-**Codex sandbox has no network** — `npm install` hangs there. Run installs
-yourself; tell Codex deps are installed and to verify with `npm run build` only.
+**Delegate implementation to the Codex rescue subagent by default.** Plan and
+agree the design first, write it down, then hand Codex the plan file plus the
+templates it should copy (`src/works/prime-spiral.ts` for a new work) and the
+exact lib signatures — it should not have to guess an API.
+
+Two things stay yours, always:
+
+- **Verification.** Codex reporting a green `npm run build` is not verification.
+  Drive the page yourself and check the behaviour the plan actually asked for.
+- **Small fixes.** Anything a few lines wide that review turns up, fix directly
+  rather than round-tripping — but say in the summary what you changed and why.
+
+Practical constraint: the **Codex sandbox has no network** — `npm install` hangs
+there. Run installs yourself; tell Codex deps are installed and to verify with
+`npm run build` only. Also tell it not to start `npm run dev` (long-running) and
+not to commit.
+
+Worked example — work #3 `schotter` (2026-07-26): Codex implemented the whole
+piece from an approved plan and the build was green, but review found the
+per-square break times were spread over the whole phase, so the bottom rows were
+still mid-ramp when the cycle branch flipped and snapped into the lattice — a 4×
+frame-to-frame jump right at the loop seam. A build gate cannot see that; a
+frame-difference sweep across the phase boundaries can.

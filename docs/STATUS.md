@@ -45,8 +45,9 @@ _Last updated: 2026-07-26._
     which animated the squares but not the transition — was dropped.
   - **12.0 s loop** at 60 fps: collapse 420 → hold 90 → recrystallise 210 = 720
     frames, matching `createRecordButton`'s default duration so one recording is
-    one seamless loop. Caveat: `durationMs` is fixed at construction, so moving
-    the **Fall** slider desynchronises the recording length from the cycle.
+    one seamless loop. Verified by recording an actual `.webm`. Caveat:
+    `durationMs` is fixed at construction, so moving the **Fall** slider
+    desynchronises the recording length from the cycle.
   - Break times spread over `phase − RISE`, not the whole phase. Spreading over
     the full phase left the bottom rows mid-ramp at the branch flip and they
     snapped — measured as a 2× frame-to-frame jump into the hold and a 4× jump
@@ -67,14 +68,9 @@ _Last updated: 2026-07-26._
 
 ## Next up
 
-Work #3's video export has **not been recorded end to end yet** — the Record
-button is enabled and wired to a 12 s duration, but no `.webm` has been produced
-and checked for loop seamlessness. Do that first (it is wall-clock/rAF driven, so
-it only stays seamless if the tab holds 60 fps).
-
-Then pick the next work — a creative call. Cleanest path: port one of the 4
-remaining sketches in `/Users/sadah/git/gen-art-practice/` (same dark-glow
-physics/math family as Lorenz, `drawingContext` + additive glow already fits):
+Pick the next work — a creative call. Cleanest path: port one of the 4 remaining
+sketches in `/Users/sadah/git/gen-art-practice/` (same dark-glow physics/math
+family as Lorenz, `drawingContext` + additive glow already fits):
 
 - `chladni_plate_frequency_sweep.html`
 - `gray_scott_reaction_diffusion_coral.html` — reaction-diffusion; uses
