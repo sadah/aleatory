@@ -13,6 +13,8 @@ import {
 const BASE = import.meta.env.BASE_URL;
 const CORE_LOADERS: Partial<Record<string, ThumbPreviewOptions['loadCore']>> = {
   schotter: async () => (await import('./works/schotter.core')).createSchotterCore,
+  'prime-spiral': async () =>
+    (await import('./works/prime-spiral.core')).createPrimeSpiralCore,
 };
 
 function workUrl(slug: string): string {

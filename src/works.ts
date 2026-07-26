@@ -69,6 +69,16 @@ export const WORKS: Work[] = [
       en: 'Every prime plotted in polar coordinates at radius p and angle p radians, revealed outward from the centre, linked to its nearest neighbours and coloured by the gap that precedes it.',
       ja: '半径 p・角度 p ラジアンの極座標にすべての素数を配置し、中心から外へ現れさせて近傍どうしを結び、直前の素数との間隔で色づけした星図。',
     },
+    thumbPreview: {
+      posterFrame: 660,
+      window: [660, 1379],
+      params: {
+        nMax: 6000,
+        kLinks: 2,
+        showGrid: false,
+        spinPerFrame: 0.0087266,
+      },
+    },
     about: {
       en: [
         'Nothing here is drawn. Each prime number p is placed at radius p and angle p radians — one rule, applied to a list nobody chose. The bowed arcs simply connect each star to its nearest neighbours in the plane; they are a reading aid, not extra structure.',
