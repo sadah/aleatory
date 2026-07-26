@@ -1,15 +1,12 @@
 import { createButton } from './controls';
 import { onLocaleChange, t } from './i18n';
+import { makeRng, randomSeed } from './rng';
 import './theme.css';
 
-export function makeRng(seed: number): () => number {
-  const seedHash = xmur3(String(seed));
-  return mulberry32(seedHash());
-}
-
-export function randomSeed(): number {
-  return Math.floor(Math.random() * 0x100000000);
-}
+// Re-exported so every existing `import { createSeedUI, makeRng } from './seed'`
+// keeps working. New code that only needs the generator should import from
+// './rng' directly — this module pulls in the controls stylesheet.
+export { makeRng, randomSeed };
 
 export interface SeedUIOptions {
   initialSeed: number;
@@ -20,34 +17,6 @@ export interface SeedUIHandle {
   element: HTMLElement;
   getSeed(): number;
   setSeed(seed: number): void;
-}
-
-function xmur3(seed: string): () => number {
-  let h = 1779033703 ^ seed.length;
-
-  for (let i = 0; i < seed.length; i += 1) {
-    h = Math.imul(h ^ seed.charCodeAt(i), 3432918353);
-    h = (h << 13) | (h >>> 19);
-  }
-
-  return () => {
-    h = Math.imul(h ^ (h >>> 16), 2246822507);
-    h = Math.imul(h ^ (h >>> 13), 3266489909);
-    h ^= h >>> 16;
-    return h >>> 0;
-  };
-}
-
-function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
 }
 
 export function createSeedUI(parent: HTMLElement, opts: SeedUIOptions): SeedUIHandle {
