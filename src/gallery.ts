@@ -5,8 +5,15 @@ import type { Work } from './types';
 import { getLocale, onLocaleChange, t } from './lib/i18n';
 import { createLocaleToggle } from './lib/locale-toggle';
 import { createPaletteToggle } from './lib/palette-picker';
+import {
+  attachThumbPreview,
+  type ThumbPreviewOptions,
+} from './lib/thumb-preview';
 
 const BASE = import.meta.env.BASE_URL;
+const CORE_LOADERS: Partial<Record<string, ThumbPreviewOptions['loadCore']>> = {
+  schotter: async () => (await import('./works/schotter.core')).createSchotterCore,
+};
 
 function workUrl(slug: string): string {
   return `${BASE}works/${slug}.html`;
@@ -41,6 +48,15 @@ function createCard(work: Work): HTMLAnchorElement {
     thumb.classList.remove('is-empty');
   });
   thumb.append(img);
+  const loadCore = CORE_LOADERS[work.slug];
+  if (work.thumbPreview && loadCore) {
+    attachThumbPreview({
+      host: thumb,
+      trigger: card,
+      preview: work.thumbPreview,
+      loadCore,
+    });
+  }
 
   const body = document.createElement('div');
   body.className = 'work-card-body';

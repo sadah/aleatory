@@ -5,7 +5,6 @@ export const WORKS: Work[] = [
     slug: 'lorenz-attractor',
     label: 'Study',
     date: '2026-07-23',
-    animated: true,
     title: { en: 'Lorenz Attractor', ja: 'ローレンツ・アトラクター' },
     description: {
       en: 'A rotating 3D Lorenz strange attractor traced as a glowing ribbon, colored by instantaneous speed.',
@@ -60,13 +59,11 @@ export const WORKS: Work[] = [
         },
       },
     ],
-    tags: ['strange-attractor', 'chaos', 'rk4', 'glow'],
   },
   {
     slug: 'prime-spiral',
     label: 'Study',
     date: '2026-07-26',
-    animated: true,
     title: { en: 'Prime Spiral Constellations', ja: '素数螺旋の星座' },
     description: {
       en: 'Every prime plotted in polar coordinates at radius p and angle p radians, revealed outward from the centre, linked to its nearest neighbours and coloured by the gap that precedes it.',
@@ -123,13 +120,11 @@ export const WORKS: Work[] = [
         },
       },
     ],
-    tags: ['primes', 'polar', 'number-theory', 'prime-gaps', 'glow'],
   },
   {
     slug: 'schotter',
     label: 'Tribute',
     date: '2026-07-26',
-    animated: true,
     title: { en: 'Schotter', ja: 'Schotter' },
     description: {
       en: "A perfect 12-column lattice that a fuzzy front descends through, breaking each square loose as it passes; Nees' 1968 print is one frame along the way.",
@@ -193,6 +188,10 @@ export const WORKS: Work[] = [
         },
       },
     ],
-    tags: ['schotter', 'nees', 'grid', 'order-disorder', 'tribute'],
+    thumbPreview: {
+      posterFrame: 300,
+      window: [10, 729],
+      params: { rows: 14, ghosts: 2, lattice: false },
+    },
   },
 ];
