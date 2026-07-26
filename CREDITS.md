@@ -35,6 +35,23 @@ confirm with a professional.
 - **Prior implementation referenced:** an earlier personal sketch,
   `gen-art-practice/lorenz_attractor_velocity_colored.html`, by the same author.
 
+### Prime Spiral Constellations — *Study*
+
+- **System:** the polar prime spiral — every prime `p` plotted at radius `p` and
+  angle `p` radians. A classical observation about the primes (closely related to
+  the Sacks spiral and to Ulam's 1963 square spiral); the ray structure it exposes
+  comes from the continued-fraction convergents of 2π (44/7, 710/113). Established
+  mathematics, in the public domain as ideas.
+- **What is ours:** the p5.js / Canvas2D re-implementation, the seeded twist offset
+  and scintillation, the grid-accelerated nearest-neighbour linking and bowed
+  constellation arcs, the prime-gap colour mapping (gaps normalised by `ln(p)` —
+  the Cramér merit — onto a cool-to-warm ramp), the outward reveal and additive
+  glow treatment, and the resulting rendered stills and video.
+- **Prior implementation referenced:** an earlier personal sketch,
+  `gen-art-practice/polar_prime_spiral_constellations.html`, by the same author.
+  Its neighbour search packed distance and index into one float and could not
+  recover the index; this port selects the k nearest neighbours directly instead.
+
 ---
 
 *New works append their entry here as they are added — see
