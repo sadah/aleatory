@@ -52,6 +52,20 @@ confirm with a professional.
   Its neighbour search packed distance and index into one float and could not
   recover the index; this port selects the k nearest neighbours directly instead.
 
+### Schotter — *Tribute*
+
+- **Source work:** Georg Nees, *Schotter*, 1968 — one of the earliest
+  computer-generated artworks; a 12-column lattice whose row-wise displacement
+  and rotation grow with depth. The idea and the algorithm are not claimed.
+- **What is ours:** the temporal reading (per-square break times, the descending
+  fuzzy front, the collapse -> hold -> recrystallise cycle), the activity-based
+  colour mapping and additive glow, the analytic ghost trail, and the rendered
+  stills/video.
+- **Prior implementation referenced:** an earlier personal sketch,
+  `p5js-practice/src/schotter.ts`, by the same author, whose animation mode
+  added Perlin wobble on top of the static offsets rather than making the
+  collapse itself temporal.
+
 ---
 
 *New works append their entry here as they are added — see

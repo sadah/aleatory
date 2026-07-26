@@ -125,4 +125,74 @@ export const WORKS: Work[] = [
     ],
     tags: ['primes', 'polar', 'number-theory', 'prime-gaps', 'glow'],
   },
+  {
+    slug: 'schotter',
+    label: 'Tribute',
+    date: '2026-07-26',
+    animated: true,
+    title: { en: 'Schotter', ja: 'Schotter' },
+    description: {
+      en: "A perfect 12-column lattice that a fuzzy front descends through, breaking each square loose as it passes; Nees' 1968 print is one frame along the way.",
+      ja: '完全な 12 列の格子を、ぼやけた前線が上から下へ通り抜け、通過した正方形を解き放っていきます。Nees の 1968 年の版画は、その途中にある 1 フレームです。',
+    },
+    about: {
+      en: [
+        "Georg Nees' Schotter is usually remembered as a field of randomly disturbed squares, but the real subject is the gradient. The top is a strict grid; the bottom collapses into gravel. Apply the same disorder to every row and the work loses the force that makes it legible.",
+        'This version reads that gradient as time as well as space. Nees\' rowProgress² amplitude envelope is left intact; what changes is when each square breaks loose. The top rows break first and barely stir, so the visible destruction appears to fall through the field.',
+        'Colour tracks how fast each square is moving right now. The collapse front shows up as a travelling band of warm light, but the band is never drawn directly. Light adds where wrecked outlines overlap, letting the broken lower rows flare on their own.',
+        'The seed fixes every final offset, rotation, break-time jitter and drift phase, so a particular collapse can be found again. The source work is Georg Nees\' 1968 Schotter; this is a tribute to its order-to-disorder system, not a claim over the idea.',
+      ],
+      ja: [
+        'Georg Nees の Schotter は、乱された正方形の集まりとして記憶されがちですが、本当の主題はその勾配です。上部は厳密な格子で、下部は砕石のように崩れます。すべての行に同じ乱れを与えると、作品を読ませている力が失われます。',
+        'この版では、その勾配を空間だけでなく時間としても読み替えています。Nees の rowProgress² という振幅の包絡はそのまま残し、変えているのは各正方形がいつ解けるかです。上の行は先に解けてもほとんど動かないため、見える崩壊は画面を落ちていくように現れます。',
+        '色は、それぞれの正方形が今どれだけ速く動いているかを追っています。崩壊の前線は暖かい光の帯として見えますが、その帯自体は描いていません。崩れた下部で輪郭が重なるほど光が加算され、自然に白熱します。',
+        'seed は最終的なずれ、回転、破断時刻の揺らぎ、ドリフトの位相をすべて固定します。そのため、気に入った崩壊はもう一度呼び戻せます。参照元は Georg Nees の 1968 年の Schotter です。この作品は、秩序から無秩序へ移る仕組みへの Tribute（賛辞）です。',
+      ],
+    },
+    parameters: [
+      {
+        term: 'Disorder',
+        desc: {
+          en: "The strength of Nees' displacement and rotation envelope. Zero keeps the lattice intact; higher values let the lower rows break further apart.",
+          ja: 'Nees のずれと回転の包絡の強さです。0 では格子が保たれ、上げるほど下の行が大きく崩れます。',
+        },
+      },
+      {
+        term: 'Rows',
+        desc: {
+          en: 'How many rows are in the field. The whole lattice is refit to the canvas, so adding rows zooms out rather than squashing the squares.',
+          ja: 'フィールド内の行数です。格子全体をキャンバスに合わせ直すため、行を増やすと正方形をつぶさずにズームアウトします。',
+        },
+      },
+      {
+        term: 'Fall',
+        desc: {
+          en: 'The speed of the collapse and recrystallising front. Higher values make the front pass faster; lower values stretch the transition.',
+          ja: '崩壊し、再結晶する前線の速さです。上げるほど前線は速く通過し、下げるほど移行が引き伸ばされます。',
+        },
+      },
+      {
+        term: 'Drift',
+        desc: {
+          en: 'A post-collapse shimmer that keeps broken squares unsettled. It fades to zero with the collapse amount, so frame 0 remains a perfect lattice.',
+          ja: '崩壊後の揺らめきです。崩壊量とともに 0 へ消えるため、フレーム 0 は完全な格子のままです。',
+        },
+      },
+      {
+        term: 'Trail',
+        desc: {
+          en: 'How many analytic ghost layers are redrawn from earlier frames. It shows recent motion without relying on canvas persistence.',
+          ja: '過去フレームから解析的に描き直すゴースト層の数です。キャンバスの残像に頼らず、直前の動きを見せます。',
+        },
+      },
+      {
+        term: 'Lattice',
+        desc: {
+          en: 'A faint reference outline of the original perfect grid, useful for seeing what order the falling front is breaking.',
+          ja: '元の完全な格子を薄く表示する参照線です。落ちていく前線が何を壊しているのかを見やすくします。',
+        },
+      },
+    ],
+    tags: ['schotter', 'nees', 'grid', 'order-disorder', 'tribute'],
+  },
 ];
