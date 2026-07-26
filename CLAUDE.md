@@ -31,6 +31,12 @@ default with a Japanese toggle. Live: https://sadah.github.io/aleatory/
   Compute geometry from the fixed size, not from live DOM width.
 - Randomness comes only from `src/lib/seed.ts` (`makeRng`); no bare
   `Math.random()` in a sketch (the seed UI's "New seed" is the sole exception).
+- **Colour comes only from `src/lib/palette.ts`.** No literal RGB or hex in a
+  sketch, and none in CSS for anything the palette drives. A sketch declares a
+  `RampProfile` (and `ColorSpec`s for off-ramp colours), builds its style table
+  in a `rebuildPaletteStyles()`, and re-runs that from `onPaletteChange`.
+  Backgrounds use the ground ladder (`resolveChrome().ground[3]` inner,
+  `ground[1]` outer), never their own near-black.
 - Keep p5 pinned to `^1.x` (2.x has breaking API changes).
 
 ## Commands

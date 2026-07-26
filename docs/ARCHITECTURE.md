@@ -113,7 +113,54 @@ to minting a fresh seed when the user clicks "New seed".
   (vp9 → vp8 → webm), a fixed 1080×1920 offscreen canvas, a per-frame pump that
   letterboxes the square art (drawn at y=420), and `captureStream(fps)` feeding
   `MediaRecorder`.
+- **oklab.ts** — sRGB ↔ OKLab/OKLCH. Gamut mapping reduces chroma by bisection
+  rather than clamping channels, so hue and lightness survive; clamping moves the
+  hue, which is how a palette rotated towards orange comes back green.
+- **palette.ts** — the palette engine (see below).
+- **palette-picker.ts** — the topbar swatch popover plus the Custom sliders. The
+  swatches are drawn from `SWATCH_PROFILE`, a display-only ramp with a shallow
+  symmetric lightness arc — *not* one of the works' profiles, which climb from a
+  dim ground to a white pivot and back and so read as a dark cap at each end of a
+  14 px bar.
 - **theme.css** — dark, low-chroma, glow-friendly tokens; Tabler icon webfont.
+
+## Palette
+
+The split of concerns is the whole design:
+
+- **The work owns lightness.** Every ramp encodes a scalar — speed, prime gap,
+  activity — as a climb from a dim cool ground through a white-hot pivot to a
+  warm peak. That climb *is* the reading, so a palette must not touch it.
+- **The palette owns hue and chroma.** It says where "cool" and "hot" point and
+  how saturated to be, and nothing else.
+
+A work ships a `RampProfile`: per stop, `{ x, side, dh, l, c }` — position, which
+end it hangs off, hue offset from that end, and the OKLCH lightness/chroma
+measured off the colour it used to hardcode. `resolveRamp` recombines them.
+
+Hue is deliberately **not** interpolated across the white pivot. Measured in
+OKLCH the ramps jump from ~260° to ~60° there rather than sweeping through green,
+and the pivot itself is a near-neutral cream. Anchoring each stop to one end
+reproduces that; one interpolated hue axis would not.
+
+Six presets plus a Custom mode (cool hue / hot hue / chroma). The Custom chroma
+knob is a fraction of `chromaHeadroom` at the chosen hues, so it stays meaningful
+all the way round the wheel instead of going dead where sRGB is narrow. State
+mirrors `i18n.ts`: `aleatory:palette` (+ `aleatory:palette-custom` for the
+knobs), a `Set` of subscribers, `onPaletteChange` returning an unsubscribe.
+`?palette=<id>` is read at boot but never written — a shared link shows what the
+sender saw without overwriting the visitor's own choice.
+
+`applyPaletteTokens` writes `--ground-0-rgb`…`--ground-5-rgb`, `--accent-rgb`,
+`--ramp-cool-rgb`, `--ramp-hot-rgb` as inline properties on the root element. The
+ground ladder is one near-black family: 0 stage, 1 page background / sketch
+gradient outer / video letterbox, 2 surface, 3 sketch gradient inner, 4 raised
+surface, 5 button hover. The literals in `theme.css:root` are the Ember values
+kept as a pre-JS fallback.
+
+**Label chips do not follow the palette.** They are a categorical set saying what
+kind of work this is; rotating them made "Study" read teal under Aurora and
+orange under Terracotta — still distinguishable, but no longer learnable.
 
 ## Build and deploy
 
