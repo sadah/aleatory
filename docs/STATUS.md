@@ -79,11 +79,42 @@ _Last updated: 2026-07-26._
 - Language toggle lives in the header top bar (gallery and work pages), labelled
   with the target language's English name (`Japanese` / `English`).
 
-- **Live gallery previews, Schotter only so far** (2026-07-26). Its card loads a
-  DOM-free render core on hover/focus and animates at card size; the other two
-  cards fall through to their JPEG because they have no `thumbPreview` yet.
-  `src/works/core-types.ts` + `src/works/schotter.core.ts` (the core) +
-  `src/works/schotter.ts` (a thin page shell) + `src/lib/thumb-preview.ts`.
+- **Live gallery previews: Schotter and Prime Spiral done, Lorenz still to go**
+  (2026-07-27). Each converted card loads a DOM-free render core on hover/focus
+  and animates at card size; Lorenz falls through to its JPEG because it has no
+  `thumbPreview` yet. `src/works/core-types.ts` + `<slug>.core.ts` (the cores) +
+  `<slug>.ts` (thin page shells) + `src/lib/thumb-preview.ts`.
+  - **Prime Spiral** is byte-identical at 1080 too: frames 0/300/719 hash
+    `a23e6df3` / `8e567241` / `8bdd3ed9`.
+    - Its preview loops `[660, 1379]`. The reveal saturates at **frame 660
+      exactly** (`revRate = P / (REVEAL_SECONDS · FPS)` = P/660; measured, the
+      lit-pixel count plateaus 655 → 660 and is flat through 900), and only after
+      saturation is the motion periodic.
+    - **The seam criterion here is different from Schotter's.** The field is
+      rotating, so the right test is "the wrap looks like one normal frame step",
+      not "the wrap is zero". Measured at size 480: wrap 8.278 against a median
+      in-window step of 8.289 — a ratio of **1.00**.
+    - `spinPerFrame` is a core param **in radians**, not the slider's 0..1 value.
+      The loop needs TAU/720 = 0.0087266, and the slider maps `value * 0.004`
+      capped at 1, so the UI can only reach 0.004 — the required setting is 2.18×
+      the slider maximum. The shell keeps the mapping; the core takes radians so a
+      non-UI caller is not boxed in by a UI range.
+    - Cost is **0.024 ms/frame at size 480**, not the ~1.5 ms first estimated. The
+      estimate assumed `rebuildPaths` runs every frame, but it is cached on K and
+      K is saturated for the whole window, so a frame is 60 fills and a rotate.
+    - Opposite scaling problem to Schotter: there is **no `ctx.scale`** here, star
+      positions are pre-multiplied by `R = 0.44 · size`, so the field shrinks with
+      the canvas while `coreRadius` / `glowRadius` / `LINK_WIDTH` / `GRID_WIDTH`
+      are raw device pixels. Unscaled they would balloon relative to the field and
+      the spiral would read as a blob. All four now scale by `size / 1080` with
+      floors.
+    - `nMax: 6000` (783 stars, vs ~2760 at the page default). The 44-arm structure
+      still reads at card size — arguably better, since individual stars separate
+      instead of mushing.
+  - Codex minified both Prime Spiral files (a 621-character line, 1-space code
+    indent). Reformatted by hand to match `schotter.core.ts`, and the byte-identity
+    gate re-run afterwards to prove the reformat changed nothing. Worth telling it
+    explicitly to match surrounding formatting next time.
   - **The core is byte-identical to the page at size 1080**: frames 0/300/719
     hash `19c928a7` / `b3e450e4` / `d1f669a`, unchanged from before the split.
     Three cores at 1080/320/512 with different params coexist without disturbing
