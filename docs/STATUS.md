@@ -51,7 +51,20 @@ _Last updated: 2026-07-26._
   - Break times spread over `phase − RISE`, not the whole phase. Spreading over
     the full phase left the bottom rows mid-ramp at the branch flip and they
     snapped — measured as a 2× frame-to-frame jump into the hold and a 4× jump
-    across the loop seam. Both are gone; the seam now measures ~0 motion.
+    across the loop seam. Both are gone; the seam measures ~0 motion **as long as
+    the frame counter keeps increasing**, which the live page does.
+  - **The trail does not wrap the cycle, so `[0, 719]` is not a seamless loop.**
+    `drawGhostLayer` returns early when `n − k·GHOST_STEP` is negative, so frame 0
+    renders with no trail while frame 720 renders with a full one. Confirmed by
+    scaling: wrap 719→0 measures 0 with `ghosts: 0`, 4.07 with 3, 8.53 with 6,
+    while 719→720 stays at 0.002 — the pose cycle itself closes fine. It only
+    bites a consumer that resets to 0, i.e. a looping player. (Drift was the first
+    suspect and is innocent: the wrap is 4.07 at drift 0 and at drift 1.0 alike.)
+    The gallery preview sidesteps it by looping `[10, 729]` instead — any 720-long
+    window starting at or after `ghosts · GHOST_STEP` is bit-exact seamless, and
+    729→10 measures **exactly 0** against a median in-window motion of 1.56. An
+    offline renderer would need the same offset, or a real fix wrapping `past`
+    modulo the cycle.
   - Colour maps *instantaneous* activity (analytic `|pose(n) − pose(n−1)|`), so
     the front reads as a travelling warm band that is never drawn. `ACT_REF` was
     lowered from `0.03·PITCH` to `0.019·PITCH`: at the higher value only the last
@@ -65,6 +78,37 @@ _Last updated: 2026-07-26._
     6 trail layers.
 - Language toggle lives in the header top bar (gallery and work pages), labelled
   with the target language's English name (`Japanese` / `English`).
+
+- **Live gallery previews, Schotter only so far** (2026-07-26). Its card loads a
+  DOM-free render core on hover/focus and animates at card size; the other two
+  cards fall through to their JPEG because they have no `thumbPreview` yet.
+  `src/works/core-types.ts` + `src/works/schotter.core.ts` (the core) +
+  `src/works/schotter.ts` (a thin page shell) + `src/lib/thumb-preview.ts`.
+  - **The core is byte-identical to the page at size 1080**: frames 0/300/719
+    hash `19c928a7` / `b3e450e4` / `d1f669a`, unchanged from before the split.
+    Three cores at 1080/320/512 with different params coexist without disturbing
+    each other, which is the whole point of the split.
+  - Cost is **0.82 ms/frame at size 320** with `rows: 14, ghosts: 2`.
+  - `STROKE_WIDTH` and `LATTICE_WIDTH` are absolute device-pixel widths (they are
+    divided by `scale` *after* `ctx.scale`), so shrinking the canvas makes them
+    relatively **heavier**, not fainter — at 1080/22 rows the 1.55 px stroke is
+    4.2% of a square edge, at 320/14 rows it would be 9.0%. Both now scale with
+    the canvas and are floored.
+  - `src/lib/rng.ts` was split out of `seed.ts` first: `seed.ts` side-effect
+    imports `controls.css`, and CSS survives tree-shaking, so a core importing
+    `makeRng` from there would drag the controls stylesheet onto the gallery
+    bundle. `seed.ts` re-exports, so no call site changed.
+  - Verified: index chunk carries **no p5** (8 kB + 28 kB, the core is a separate
+    4.4 kB chunk fetched on hover); canvas created on hover/focus and released
+    ~140 ms after leaving; the `<img>` stays underneath so leaving fades back;
+    the live canvas follows a palette change within a frame; no canvas or heap
+    accumulation over repeated hovers.
+  - **Not yet verified at runtime:** the actual animation, `prefers-reduced-motion`
+    and the touch/no-hover path. The browser pane runs hidden
+    (`visibilityState: "hidden"`, **0 rAF ticks per 500 ms**), so playback cannot
+    be observed there — the frame-advance arithmetic and the loop seam were
+    checked directly instead, and the two media-query paths are code-inspected
+    only. Worth a look on a real visible browser.
 
 - **Themeable palettes** are done end to end (2026-07-26). Six presets — Ember
   (残り火, the original blue/orange), Aurora (極光), Peony (牡丹), Verdigris
@@ -163,10 +207,9 @@ Choose per `taste-notes.md` (phenomenon over meaning; order → disorder;
 
 ## Deferred by design
 
-- **Live-canvas hover thumbnails** in the gallery — planned in detail but not
-  started. Splits each sketch into a pure render core (`<slug>.core.ts`, no p5, no
-  DOM) plus a page shell, so the gallery can animate cards at ~320 px and follow
-  the palette automatically. Notes worth keeping from the planning pass:
+- **Live-canvas hover thumbnails for Prime Spiral and Lorenz** remain deferred.
+  Schotter now has the first implementation, using a pure render core
+  (`<slug>.core.ts`, no p5, no DOM). Notes worth keeping for extending it:
   prime-spiral *does* loop once the reveal front saturates (nMax 6000 → K settles
   at frame 660; `spin = TAU/720` gives one turn in 720 frames and the twinkle
   period 240 divides it exactly); lorenz is non-periodic *and* forward-only so it

@@ -48,10 +48,9 @@ export interface Work {
   slug: string;                 // -> works/<slug>.html, src/works/<slug>.ts, thumbs/<slug>.jpg
   label: Label;
   date: string;                 // ISO 'YYYY-MM-DD'
-  animated: boolean;            // true -> video export enabled
   title: Record<Locale, string>;
   description: Record<Locale, string>;
-  tags: string[];
+  thumbPreview?: ThumbPreview;
 }
 ```
 

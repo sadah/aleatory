@@ -16,7 +16,6 @@ In [`src/works.ts`](../src/works.ts), append to `WORKS`:
   slug: 'magnetic-field',
   label: 'Study',                 // Study | Tribute | Original | Reproduction
   date: '2026-08-01',             // ISO date
-  animated: true,                 // true enables video export; false = PNG only
   title: { en: 'Magnetic Field', ja: '磁場' },
   description: {
     en: 'One-sentence English description (also used as the sr-only long text).',
@@ -33,7 +32,6 @@ In [`src/works.ts`](../src/works.ts), append to `WORKS`:
   parameters: [
     { term: 'Density', desc: { en: 'What the Density slider does.', ja: 'Density スライダーの説明。' } },
   ],
-  tags: ['field', 'particles', 'glow'],
 }
 ```
 
@@ -159,7 +157,7 @@ To derive a profile from colours you already like, measure them:
 `srgbToOklch([r, g, b])` from `src/lib/oklab.ts` gives you the `l` and `c`, and
 `dh` is the measured hue minus the anchor (260° cool, 60° hot).
 
-Wire `createPngButton` (and, if `animated`, `createRecordButton`) into
+Wire `createPngButton` and `createRecordButton` into
 `exportSlot`, with filenames `` `aleatory_${slug}_${seed}.png` `` /
 `` .webm ``. Wire `createSeedUI` into `seedSlot`.
 
