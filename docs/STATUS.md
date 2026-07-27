@@ -174,12 +174,14 @@ _Last updated: 2026-07-27._
   - The hover lift (`transform: translateY(-3px)`) is gone. With the cards moving
     on their own, nudging one upward misaligned it against its neighbours while
     the eye was already on it; the border and glow carry the hover state instead.
-  - **Not yet verified at runtime:** the actual animation, `prefers-reduced-motion`
-    and the touch/no-hover path. The browser pane runs hidden
-    (`visibilityState: "hidden"`, **0 rAF ticks per 500 ms**), so playback cannot
-    be observed there — the frame-advance arithmetic and the loop seam were
-    checked directly instead, and the two media-query paths are code-inspected
-    only. Worth a look on a real visible browser.
+  - **Confirmed working on a real iPhone** (owner, 2026-07-27) as well as desktop
+    Chrome. Note for the next agent: playback cannot be observed from the browser
+    pane, which runs hidden (`visibilityState: "hidden"`, **0 rAF ticks per
+    500 ms**). Everything else was checked there by driving `renderFrame(n)`
+    directly — the frame-advance arithmetic, the loop seams, canvas
+    creation/release, and palette following — but anything that depends on rAF
+    actually ticking, or on a media query that cannot be forced from JS
+    (`prefers-reduced-motion`, `hover`/`pointer`), needs a real browser.
 
 - **Themeable palettes** are done end to end (2026-07-26). Six presets — Ember
   (残り火, the original blue/orange), Aurora (極光), Peony (牡丹), Verdigris
@@ -257,9 +259,9 @@ Choose per `taste-notes.md` (phenomenon over meaning; order → disorder;
 
 ## Known issues (non-blocking)
 
-- **iPhone Safari real-device check still pending** (owner's device): PNG export,
-  the video button being disabled + its tooltip, and drag-to-rotate. Everything
-  was verified on desktop Chrome.
+- The gallery previews are confirmed on a real iPhone (2026-07-27). Still
+  unchecked there: **PNG export, the video button being disabled + its tooltip,
+  and drag-to-rotate on a work page**.
 - Tabler icon webfont is heavy (CSS ~192 KB + ttf ~2.8 MB) for the handful of
   icons actually used. Consider subsetting or inlining SVG icons.
 - Vite warns the Lorenz JS chunk is >500 KB (p5 bundled, ~1 MB). Cosmetic; raise
@@ -273,20 +275,12 @@ Choose per `taste-notes.md` (phenomenon over meaning; order → disorder;
   `npm run build` will not catch its absence, the Custom slider will just promise
   saturation the gamut cannot deliver.
 - The three `public/thumbs/*.jpg` are stills captured under Ember, so they do not
-  follow a palette change. Cosmetic, and the planned live-canvas thumbnails
-  (below) remove the problem rather than needing 18 re-captures.
+  follow a palette change. They are now only the poster under a loading card and
+  the fallback under `prefers-reduced-motion`, so a visitor sees one for a moment
+  at most — not worth re-capturing six times per palette.
 
 ## Deferred by design
 
-- **Live-canvas hover thumbnails for Prime Spiral and Lorenz** remain deferred.
-  Schotter now has the first implementation, using a pure render core
-  (`<slug>.core.ts`, no p5, no DOM). Notes worth keeping for extending it:
-  prime-spiral *does* loop once the reveal front saturates (nMax 6000 → K settles
-  at frame 660; `spin = TAU/720` gives one turn in 720 frames and the twinkle
-  period 240 divides it exactly); lorenz is non-periodic *and* forward-only so it
-  cannot loop at all and should just run forward while hovered; extracting
-  `src/lib/rng.ts` is a prerequisite, because `seed.ts` side-effect-imports
-  `controls.css` and CSS survives tree-shaking onto the index bundle.
 - Offline high-quality video export via the fixed-timestep `renderFrame(n)`
   (add-only when built).
 - Automated thumbnail capture (currently a manual step — see `ADD_A_WORK.md`).
