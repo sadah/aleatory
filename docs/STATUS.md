@@ -86,22 +86,27 @@ _Last updated: 2026-07-26._
   `<slug>.ts` (thin page shells) + `src/lib/thumb-preview.ts`.
   - **Prime Spiral** is byte-identical at 1080 too: frames 0/300/719 hash
     `a23e6df3` / `8e567241` / `8bdd3ed9`.
-    - Its preview loops `[660, 1379]`. The reveal saturates at **frame 660
-      exactly** (`revRate = P / (REVEAL_SECONDS · FPS)` = P/660; measured, the
-      lit-pixel count plateaus 655 → 660 and is flat through 900), and only after
-      saturation is the motion periodic.
-    - **The seam criterion here is different from Schotter's.** The field is
-      rotating, so the right test is "the wrap looks like one normal frame step",
-      not "the wrap is zero". Measured at size 480: wrap 8.278 against a median
-      in-window step of 8.289 — a ratio of **1.00**.
-    - `spinPerFrame` is a core param **in radians**, not the slider's 0..1 value.
-      The loop needs TAU/720 = 0.0087266, and the slider maps `value * 0.004`
-      capped at 1, so the UI can only reach 0.004 — the required setting is 2.18×
-      the slider maximum. The shell keeps the mapping; the core takes radians so a
-      non-UI caller is not boxed in by a UI range.
+    - **Its preview is `forward` from frame 0, not a loop** — corrected after
+      review. It first looped `[660, 1379]`, which starts *after* the reveal
+      saturates (frame 660 exactly: `revRate = P / (REVEAL_SECONDS · FPS)` = P/660,
+      and the lit count measurably plateaus 655 → 660, flat through 900). That
+      loop was seamless — wrap 8.278 vs a median in-window step of 8.289 at size
+      480, ratio 1.00 — but seamlessness was the wrong thing to optimise: it threw
+      away the outward reveal, which *is* the piece, leaving a card that only
+      spun. Running forward from 0 shows the constellation drawing itself over
+      11 s; mean lit radius grows 4.9 → 62.3 px at size 273. Forward playback
+      restarts whenever the card re-enters the viewport, so it is not a one-time
+      event a visitor can miss.
+    - Spin is back to the work's own default, **0.001 rad/frame = 105 s per turn**.
+      The loop had forced TAU/720 = 12 s per turn, which read as frantic. Nothing
+      needs a period now, so nothing has to be forced.
+    - `spinPerFrame` stays a core param **in radians**, not the slider's 0..1
+      value — a lesson from the loop attempt worth keeping. The slider maps
+      `value * 0.004` capped at 1, so the UI tops out at 0.004 while the loop
+      needed 2.18× that. The shell keeps the mapping; the core is not boxed in by
+      a UI range.
     - Cost is **0.024 ms/frame at size 480**, not the ~1.5 ms first estimated. The
-      estimate assumed `rebuildPaths` runs every frame, but it is cached on K and
-      K is saturated for the whole window, so a frame is 60 fills and a rotate.
+      estimate assumed `rebuildPaths` runs every frame, but it is cached on K.
     - Opposite scaling problem to Schotter: there is **no `ctx.scale`** here, star
       positions are pre-multiplied by `R = 0.44 · size`, so the field shrinks with
       the canvas while `coreRadius` / `glowRadius` / `LINK_WIDTH` / `GRID_WIDTH`
@@ -134,6 +139,15 @@ _Last updated: 2026-07-26._
     ~140 ms after leaving; the `<img>` stays underneath so leaving fades back;
     the live canvas follows a palette change within a frame; no canvas or heap
     accumulation over repeated hovers.
+  - **Cards animate whenever they are on screen — hover is not required** (changed
+    after review; it was hover-gated at first, which left the gallery still until
+    you happened to point at something). The IntersectionObserver at threshold
+    0.25 is what bounds the cost: off-screen cards run nothing and release their
+    canvas, and scrolling back in re-creates it. `prefers-reduced-motion` still
+    creates no canvas at all.
+  - The hover lift (`transform: translateY(-3px)`) is gone. With the cards moving
+    on their own, nudging one upward misaligned it against its neighbours while
+    the eye was already on it; the border and glow carry the hover state instead.
   - **Not yet verified at runtime:** the actual animation, `prefers-reduced-motion`
     and the touch/no-hover path. The browser pane runs hidden
     (`visibilityState: "hidden"`, **0 rAF ticks per 500 ms**), so playback cannot

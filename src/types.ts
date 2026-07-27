@@ -9,16 +9,31 @@ export interface WorkParameter {
   desc: Record<Locale, string>;
 }
 
-export interface ThumbPreview {
-  /** The frame the poster JPEG corresponds to; also the still used on touch. */
+interface ThumbPreviewBase {
+  /** The frame the poster JPEG corresponds to; also the still under reduced motion. */
   posterFrame: number;
-  /** Inclusive frame window the hover playback loops over. */
-  window: [number, number];
   /** Frames advanced per rAF tick. 1 = 60 fps real time. */
   rate?: number;
   /** Core params overridden for the small canvas. */
   params: Record<string, number | boolean>;
 }
+
+/**
+ * How a card's preview plays.
+ *
+ * `loop` cycles a window forever, and is only honest for a piece whose motion is
+ * genuinely periodic over exactly that window — otherwise the wrap is a cut.
+ * `forward` runs on from a start frame and never wraps: the right choice when a
+ * piece is non-periodic, or when its one-way opening is the thing worth
+ * watching. Forward playback restarts each time the card re-enters the viewport,
+ * so the opening is not a one-time event a visitor can miss.
+ *
+ * A union rather than one shape with an unused field, so a `forward` entry cannot
+ * carry a window that nothing reads.
+ */
+export type ThumbPreview =
+  | (ThumbPreviewBase & { mode: 'loop'; window: [number, number] })
+  | (ThumbPreviewBase & { mode: 'forward'; startFrame?: number });
 
 export interface Work {
   /** Drives derived paths: works/<slug>.html, src/works/<slug>.ts, thumbs/<slug>.jpg */

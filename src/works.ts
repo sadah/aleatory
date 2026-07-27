@@ -70,13 +70,18 @@ export const WORKS: Work[] = [
       ja: '半径 p・角度 p ラジアンの極座標にすべての素数を配置し、中心から外へ現れさせて近傍どうしを結び、直前の素数との間隔で色づけした星図。',
     },
     thumbPreview: {
+      // The outward reveal *is* the piece — starting after it saturated left the
+      // card looking like a field that only spins. Forward from 0 shows the
+      // constellation drawing itself, and replays whenever the card scrolls back
+      // in. Spin is left at the work's own default; forcing a period on it only
+      // mattered when this looped, and one turn per 12 s read as frantic.
+      mode: 'forward',
+      startFrame: 0,
       posterFrame: 660,
-      window: [660, 1379],
       params: {
         nMax: 6000,
         kLinks: 2,
         showGrid: false,
-        spinPerFrame: 0.0087266,
       },
     },
     about: {
@@ -199,8 +204,13 @@ export const WORKS: Work[] = [
       },
     ],
     thumbPreview: {
-      posterFrame: 300,
+      // [10, 729] rather than [0, 719]: the ghost trail bails out when
+      // `n - k * GHOST_STEP` is negative, so frame 0 has no trail while 720 has a
+      // full one. Any 720-long window starting at or after `ghosts * GHOST_STEP`
+      // is bit-exact seamless — 729 -> 10 measures exactly 0.
+      mode: 'loop',
       window: [10, 729],
+      posterFrame: 300,
       params: { rows: 14, ghosts: 2, lattice: false },
     },
   },

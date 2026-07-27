@@ -29,15 +29,17 @@ const observer = new IntersectionObserver(
   { threshold: 0.25 },
 );
 
-let active: (() => void) | null = null;
-
-/** Returns a teardown function. */
+/**
+ * Returns a teardown function.
+ *
+ * A card animates whenever it is on screen — no hover required. The gallery is
+ * meant to look alive at a glance, and gating on hover meant a still page until
+ * you happened to point at something. The IntersectionObserver is what keeps the
+ * cost bounded: off-screen cards run nothing at all.
+ */
 export function attachThumbPreview(opts: ThumbPreviewOptions): () => void {
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  const fineHover = matchMedia('(hover: hover) and (pointer: fine)');
   let eligible = false;
-  let pointed = false;
-  let focused = false;
   let canvas: HTMLCanvasElement | null = null;
   let core: WorkCore<any> | null = null;
   let frame = opts.preview.posterFrame;
@@ -62,7 +64,6 @@ export function attachThumbPreview(opts: ThumbPreviewOptions): () => void {
     cancelAnimationFrame(raf);
     raf = 0;
     generation += 1;
-    if (active === stop) active = null;
     if (!canvas) return;
     canvas.style.opacity = '0';
     window.clearTimeout(releaseTimer);
@@ -75,37 +76,33 @@ export function attachThumbPreview(opts: ThumbPreviewOptions): () => void {
 
   const animate = (): void => {
     render();
-    const [w0, w1] = opts.preview.window;
     const step = opts.preview.rate ?? 1;
-    frame = w0 + ((frame - w0 + step) % (w1 - w0 + 1));
+    if (opts.preview.mode === 'forward') {
+      // Never wraps: the piece is either non-periodic or its opening is one-way,
+      // so cycling would cut rather than loop.
+      frame += step;
+    } else {
+      const [w0, w1] = opts.preview.window;
+      frame = w0 + ((frame - w0 + step) % (w1 - w0 + 1));
+    }
     raf = requestAnimationFrame(animate);
   };
 
-  const ensureCanvas = async (play: boolean): Promise<void> => {
+  const ensureCanvas = async (): Promise<void> => {
     if (disposed || reducedMotion.matches || !eligible) return;
-    if (play && active !== stop) {
-      active?.();
-      active = stop;
-    }
 
     if (core && canvas) {
       window.clearTimeout(releaseTimer);
       releaseTimer = 0;
       render();
       canvas.style.opacity = '1';
-      if (play && !raf) raf = requestAnimationFrame(animate);
+      if (!raf) raf = requestAnimationFrame(animate);
       return;
     }
 
     const requestGeneration = ++generation;
     const factory = await opts.loadCore();
-    if (
-      disposed ||
-      reducedMotion.matches ||
-      !eligible ||
-      requestGeneration !== generation ||
-      (play && active !== stop)
-    ) {
+    if (disposed || reducedMotion.matches || !eligible || requestGeneration !== generation) {
       return;
     }
 
@@ -128,16 +125,22 @@ export function attachThumbPreview(opts: ThumbPreviewOptions): () => void {
     });
     canvas = nextCanvas;
     core = nextCore;
-    const [w0, w1] = opts.preview.window;
-    frame =
-      opts.preview.posterFrame >= w0 && opts.preview.posterFrame <= w1
-        ? opts.preview.posterFrame
-        : w0;
+    // `forward` always begins at its start frame, so scrolling a card back into
+    // view replays the opening. `loop` picks up at the poster frame when that
+    // falls inside the window, so the first painted frame matches the JPEG it
+    // is fading over.
+    if (opts.preview.mode === 'forward') {
+      frame = opts.preview.startFrame ?? 0;
+    } else {
+      const [w0, w1] = opts.preview.window;
+      const poster = opts.preview.posterFrame;
+      frame = poster >= w0 && poster <= w1 ? poster : w0;
+    }
     opts.host.append(nextCanvas);
     render();
     void nextCanvas.offsetWidth;
     nextCanvas.style.opacity = '1';
-    if (play) raf = requestAnimationFrame(animate);
+    raf = requestAnimationFrame(animate);
   };
 
   const reconcile = (): void => {
@@ -145,33 +148,9 @@ export function attachThumbPreview(opts: ThumbPreviewOptions): () => void {
       stop();
       return;
     }
-    if (!fineHover.matches) {
-      void ensureCanvas(false);
-      return;
-    }
-    if (pointed || focused) {
-      void ensureCanvas(true);
-    } else {
-      stop();
-    }
+    void ensureCanvas();
   };
 
-  const onPointerEnter = (): void => {
-    pointed = true;
-    reconcile();
-  };
-  const onPointerLeave = (): void => {
-    pointed = false;
-    reconcile();
-  };
-  const onFocusIn = (): void => {
-    focused = true;
-    reconcile();
-  };
-  const onFocusOut = (): void => {
-    focused = false;
-    reconcile();
-  };
   const onMotionChange = (): void => {
     if (reducedMotion.matches) {
       stop();
@@ -180,20 +159,6 @@ export function attachThumbPreview(opts: ThumbPreviewOptions): () => void {
       reconcile();
     }
   };
-  const onHoverChange = (): void => {
-    pointed = false;
-    wireHover();
-    reconcile();
-  };
-  const wireHover = (): void => {
-    opts.trigger.removeEventListener('pointerenter', onPointerEnter);
-    opts.trigger.removeEventListener('pointerleave', onPointerLeave);
-    if (fineHover.matches) {
-      opts.trigger.addEventListener('pointerenter', onPointerEnter);
-      opts.trigger.addEventListener('pointerleave', onPointerLeave);
-    }
-  };
-
   const unsubscribePalette = onPaletteChange(() => {
     if (!core) return;
     core.refreshPalette();
@@ -205,11 +170,7 @@ export function attachThumbPreview(opts: ThumbPreviewOptions): () => void {
     reconcile();
   });
   observer.observe(opts.trigger);
-  wireHover();
-  opts.trigger.addEventListener('focusin', onFocusIn);
-  opts.trigger.addEventListener('focusout', onFocusOut);
   reducedMotion.addEventListener('change', onMotionChange);
-  fineHover.addEventListener('change', onHoverChange);
 
   return () => {
     disposed = true;
@@ -217,11 +178,6 @@ export function attachThumbPreview(opts: ThumbPreviewOptions): () => void {
     releaseCanvas();
     unsubscribePalette();
     reducedMotion.removeEventListener('change', onMotionChange);
-    fineHover.removeEventListener('change', onHoverChange);
-    opts.trigger.removeEventListener('pointerenter', onPointerEnter);
-    opts.trigger.removeEventListener('pointerleave', onPointerLeave);
-    opts.trigger.removeEventListener('focusin', onFocusIn);
-    opts.trigger.removeEventListener('focusout', onFocusOut);
     observer.unobserve(opts.trigger);
     eligibilityHandlers.delete(opts.trigger);
   };

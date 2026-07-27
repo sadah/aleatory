@@ -50,13 +50,16 @@
   text-decoration: none;
   color: inherit;
   transition:
-    transform 180ms ease,
     border-color 180ms ease,
     box-shadow 180ms ease;
 }
 
+/*
+ * No lift on hover. The cards animate on their own now, so nudging one upward
+ * misaligned it against its neighbours while the eye was already on it — the
+ * border and glow say "hovered" without moving anything.
+ */
 .work-card:hover {
-  transform: translateY(-3px);
   border-color: var(--color-border-secondary);
   box-shadow: 0 18px 48px -28px rgb(var(--accent-rgb) / 0.55);
   text-decoration: none;
