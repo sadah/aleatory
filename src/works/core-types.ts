@@ -16,8 +16,8 @@ export interface WorkCore<P> {
   refreshPalette(): void;
   /** The overlay string. Returned, not written — the core must not touch DOM. */
   getStatusText(n: number): string;
-  /** Frames per seamless loop, for whoever needs to wrap n. */
-  getCycleFrames(): number;
+  /** Frames per seamless loop, or null when the work has no cycle. */
+  getCycleFrames(): number | null;
   /** Release typed arrays and Path2Ds. */
   destroy(): void;
 }

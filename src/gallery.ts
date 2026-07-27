@@ -15,6 +15,8 @@ const CORE_LOADERS: Partial<Record<string, ThumbPreviewOptions['loadCore']>> = {
   schotter: async () => (await import('./works/schotter.core')).createSchotterCore,
   'prime-spiral': async () =>
     (await import('./works/prime-spiral.core')).createPrimeSpiralCore,
+  'lorenz-attractor': async () =>
+    (await import('./works/lorenz-attractor.core')).createLorenzCore,
 };
 
 function workUrl(slug: string): string {

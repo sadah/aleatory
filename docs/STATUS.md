@@ -4,7 +4,7 @@ Living handoff for the next session. **Read this before starting; update it
 before finishing.** Stable rules live in [`../CLAUDE.md`](../CLAUDE.md); this file
 is the volatile "where things stand / what's next" state.
 
-_Last updated: 2026-07-26._
+_Last updated: 2026-07-27._
 
 ## Where things stand
 
@@ -79,11 +79,12 @@ _Last updated: 2026-07-26._
 - Language toggle lives in the header top bar (gallery and work pages), labelled
   with the target language's English name (`Japanese` / `English`).
 
-- **Live gallery previews: Schotter and Prime Spiral done, Lorenz still to go**
-  (2026-07-27). Each converted card loads a DOM-free render core on hover/focus
-  and animates at card size; Lorenz falls through to its JPEG because it has no
-  `thumbPreview` yet. `src/works/core-types.ts` + `<slug>.core.ts` (the cores) +
-  `<slug>.ts` (thin page shells) + `src/lib/thumb-preview.ts`.
+- **Live gallery previews: all three works done** (2026-07-27). Every card runs
+  the real sketch in a small canvas instead of showing a still, so the gallery
+  moves on its own and follows the palette with no binary assets.
+  `src/works/core-types.ts` + `<slug>.core.ts` (the cores) + `<slug>.ts` (thin
+  page shells) + `src/lib/thumb-preview.ts`. A work without `thumbPreview` still
+  degrades silently to its JPEG.
   - **Prime Spiral** is byte-identical at 1080 too: frames 0/300/719 hash
     `a23e6df3` / `8e567241` / `8bdd3ed9`.
     - **Its preview is `forward` from frame 0, not a loop** — corrected after
@@ -139,6 +140,31 @@ _Last updated: 2026-07-26._
     ~140 ms after leaving; the `<img>` stays underneath so leaving fades back;
     the live canvas follows a palette change within a frame; no canvas or heap
     accumulation over repeated hovers.
+  - **Lorenz** is byte-identical at 1080 as well: frames 0/300/719 hash
+    `3c03b5a1` / `9fbed70c` / `5671fbfb`. Its preview is `forward` with **no
+    `restartAfter`** — the trajectory is non-periodic *and* the integration is
+    forward-only, so there is nothing to restart to and no loop to manufacture.
+    Card params are `trail: 4000, stepsPerFrame: 5` (from 1800/8 after review:
+    longer ribbon, calmer head — `stepsPerFrame` is literally integration steps
+    per frame, so it *is* the head speed). Cost at size 480 is 0.2 ms to build
+    and 0.25 ms a frame, so the trail could go further if wanted.
+    - `PERSPECTIVE = 150` is deliberately **not** scaled with canvas size: it
+      divides world-space depth, and pixels only enter afterwards via
+      `scale = R / 30`. Scaling it would change the camera, not the resolution.
+  - **`forward` previews can opt into `restartAfter`.** Prime Spiral uses 960
+    frames — 11 s of reveal then ~5 s of the settled field turning, then it draws
+    itself again. Left running forever, anyone arriving late saw only the settled
+    state. The restart is a visible cut, not a loop; that is the honest trade and
+    is why it is per-work rather than automatic. Lorenz omits it.
+  - **Measurement caveat for anyone re-running a byte-identity gate on Prime
+    Spiral.** The first render after `rebuildPaths` differs from later renders of
+    the same frame: ~46% of pixels by exactly 1 (background rounding) and ~650
+    pixels by more, all inside the dense overlapping core. Render the same frame
+    twice and the second matches the third exactly, and `300 → 301 → 300` matches
+    exactly. It is Chrome's path rasterisation, not core state — `rebuildPaths`
+    builds fresh `Path2D`s from deterministic inputs, K was verified identical
+    (355/783) across the comparison, and the transform and composite op come back
+    clean. The gates stay valid because both sides are captured the same way.
   - **Cards animate whenever they are on screen — hover is not required** (changed
     after review; it was hover-gated at first, which left the gallery still until
     you happened to point at something). The IntersectionObserver at threshold

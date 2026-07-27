@@ -33,7 +33,19 @@ interface ThumbPreviewBase {
  */
 export type ThumbPreview =
   | (ThumbPreviewBase & { mode: 'loop'; window: [number, number] })
-  | (ThumbPreviewBase & { mode: 'forward'; startFrame?: number });
+  | (ThumbPreviewBase & {
+      mode: 'forward';
+      startFrame?: number;
+      /**
+       * Jump back to the start after this many frames. Omit to run on forever.
+       *
+       * For a piece whose opening is the interesting part, running on forever
+       * means anyone who arrives late sees only the settled state. Restarting is
+       * a visible cut rather than a loop — that is the honest trade, and it is
+       * why this is opt-in per work rather than the default.
+       */
+      restartAfter?: number;
+    });
 
 export interface Work {
   /** Drives derived paths: works/<slug>.html, src/works/<slug>.ts, thumbs/<slug>.jpg */

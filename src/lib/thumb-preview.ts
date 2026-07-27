@@ -78,9 +78,18 @@ export function attachThumbPreview(opts: ThumbPreviewOptions): () => void {
     render();
     const step = opts.preview.rate ?? 1;
     if (opts.preview.mode === 'forward') {
-      // Never wraps: the piece is either non-periodic or its opening is one-way,
-      // so cycling would cut rather than loop.
+      // Never wraps into a window: the piece is either non-periodic or its
+      // opening is one-way. `restartAfter` jumps back to the start instead — a
+      // deliberate cut, so a late arrival still gets to see the opening.
       frame += step;
+      const start = opts.preview.startFrame ?? 0;
+      const restart = opts.preview.restartAfter;
+      // Rewinding the counter is enough only for a core that is pure in `n`.
+      // A forward-only core (Lorenz) would ignore the rewind and keep its trail,
+      // which is why it runs on forever instead of setting `restartAfter`.
+      if (restart !== undefined && frame - start >= restart) {
+        frame = start;
+      }
     } else {
       const [w0, w1] = opts.preview.window;
       frame = w0 + ((frame - w0 + step) % (w1 - w0 + 1));

@@ -10,6 +10,25 @@ export const WORKS: Work[] = [
       en: 'A rotating 3D Lorenz strange attractor traced as a glowing ribbon, colored by instantaneous speed.',
       ja: '速度に応じて色づく発光リボンとして描いた、回転する3Dローレンツ・アトラクター。',
     },
+    thumbPreview: {
+      // No `restartAfter`: the trajectory is non-periodic *and* the integration
+      // is forward-only, so there is nothing to restart to and nothing to loop.
+      // It simply keeps drawing, which is what the piece is.
+      mode: 'forward',
+      startFrame: 0,
+      posterFrame: 600,
+      params: {
+        // 4000 rather than 1800 for a longer ribbon, and 5 steps/frame rather
+        // than 8 for a calmer head — `stepsPerFrame` is literally the number of
+        // integration steps advanced per frame, so it is the head speed. Both
+        // are affordable: measured at size 480, build is 0.2 ms and a frame is
+        // 0.25 ms even at 3500/5.
+        trail: 4000,
+        stepsPerFrame: 5,
+        spin: 0.5,
+        rho: 28,
+      },
+    },
     about: {
       en: [
         'The Lorenz system is three simple equations — a stripped-down model of convection in the atmosphere. Their solution never repeats and never settles, yet it never escapes this two-lobed shape. That bounded-but-unrepeating orbit is a strange attractor.',
@@ -77,6 +96,11 @@ export const WORKS: Work[] = [
       // mattered when this looped, and one turn per 12 s read as frantic.
       mode: 'forward',
       startFrame: 0,
+      // 660 frames of reveal (REVEAL_SECONDS · FPS), then ~5 s of the settled
+      // field turning, then it draws itself again. Left to run on forever, the
+      // card sat in that settled state indefinitely and anyone arriving late
+      // never saw the part worth seeing.
+      restartAfter: 960,
       posterFrame: 660,
       params: {
         nMax: 6000,
