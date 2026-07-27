@@ -173,3 +173,13 @@
   margin-top: clamp(32px, 6vw, 64px);
   color: var(--color-text-tertiary);
 }
+
+@media (max-width: 520px) {
+  .gallery-topbar {
+    flex-direction: column;
+  }
+
+  .gallery-topbar .topbar-controls {
+    align-self: flex-end;
+  }
+}

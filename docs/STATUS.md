@@ -76,8 +76,22 @@ _Last updated: 2026-07-27._
     this: it re-evaluates poses at `n − k·GHOST_STEP` rather than leaving pixels
     on the canvas. Render cost is 1.8 ms/frame at defaults, 3.0 ms at 40 rows ×
     6 trail layers.
-- Language toggle lives in the header top bar (gallery and work pages), labelled
-  with the target language's English name (`Japanese` / `English`).
+- Language toggle lives in the header top bar (gallery, About, and work pages),
+  labelled with the target language's English name (`Japanese` / `English`).
+
+- **Profile, shared footer, and social cards are implemented** (2026-07-27).
+  `about.html` presents `sadah` with the supplied portrait, current short bio,
+  and GitHub / X / Instagram / sadah.dev links. The gallery, About page, and all
+  work pages share one site footer (`src/lib/site-footer.ts`); the work page's
+  seed/export row is now correctly a separate control region.
+  - Every public HTML entry has an English-first static description, canonical
+    URL, Open Graph metadata, and X large-image card metadata, with `ja_JP`
+    declared as an alternate locale.
+  - `public/og/` contains a gallery card, an About card, and one card per work,
+    all verified at 1200×630. `scripts/og-cards.html` is their browser-rendered
+    source so a future work can match the set without a new image dependency.
+  - Locale changes now update the document's `lang` attribute as well as visible
+    text.
 
 - **Live gallery previews: all three works done** (2026-07-27). Every card runs
   the real sketch in a small canvas instead of showing a still, so the gallery

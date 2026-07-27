@@ -1,0 +1,132 @@
+.about-shell {
+  width: min(100% - 32px, 920px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: var(--space-6) 0;
+}
+
+.about-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: fit-content;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+.back-link:hover {
+  color: var(--color-text-primary);
+}
+
+.profile {
+  display: grid;
+  grid-template-columns: minmax(220px, 340px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(32px, 7vw, 72px);
+  margin-top: clamp(48px, 9vw, 96px);
+}
+
+.profile-portrait {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-lg);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.44),
+    0 0 68px rgb(var(--accent-rgb) / 0.10);
+}
+
+.profile-content {
+  min-width: 0;
+}
+
+.profile-eyebrow {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.profile-name {
+  margin: 0 0 var(--space-5);
+  color: var(--color-text-primary);
+  font-size: clamp(3rem, 9vw, 5.5rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+}
+
+.profile-bio {
+  color: var(--color-text-secondary);
+  font-size: clamp(0.98rem, 2vw, 1.08rem);
+  line-height: 1.7;
+}
+
+.profile-bio p {
+  margin: 0 0 var(--space-3);
+}
+
+.profile-bio p:last-child {
+  margin-bottom: 0;
+}
+
+.profile-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  font-size: 0.82rem;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.profile-link:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
+  border-color: var(--color-border-secondary);
+  text-decoration: none;
+}
+
+@media (max-width: 680px) {
+  .about-shell {
+    width: min(100% - 24px, 920px);
+    padding: var(--space-5) 0;
+  }
+
+  .profile {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+  }
+
+  .profile-portrait {
+    width: min(100%, 340px);
+  }
+}

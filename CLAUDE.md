@@ -49,8 +49,8 @@ npm run preview   # preview the production build under /aleatory/
 
 ## Adding a work
 
-One `WORKS` entry (`src/works.ts`) + `works/<slug>.html` +
-`src/works/<slug>.ts` + `public/thumbs/<slug>.jpg`. Full recipe:
+One `WORKS` entry (`src/works.ts`) + `works/<slug>.html` + a core/shell pair in
+`src/works/` + `public/thumbs/<slug>.jpg` + `public/og/<slug>.png`. Full recipe:
 [`docs/ADD_A_WORK.md`](docs/ADD_A_WORK.md). Optional `about` / `parameters`
 manifest fields render an explainer section via the shared frame. Aesthetic
 guidance: [`docs/taste-notes.md`](docs/taste-notes.md). Credit sources in

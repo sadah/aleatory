@@ -92,11 +92,36 @@ export const UI_STRINGS: Record<string, Record<Locale, string>> = {
     en: 'Generative studies in chance, motion, and light.',
     ja: '偶然、動き、光をめぐるジェネラティブ・スタディ。',
   },
+  galleryLink: {
+    en: 'Gallery',
+    ja: 'ギャラリー',
+  },
+  aboutLink: {
+    en: 'About',
+    ja: 'プロフィール',
+  },
+  footerNavigation: {
+    en: 'Site and social links',
+    ja: 'サイトとソーシャルリンク',
+  },
+  aboutProfile: {
+    en: 'About',
+    ja: 'プロフィール',
+  },
+  profileLinks: {
+    en: 'Find me online',
+    ja: '外部リンク',
+  },
+  profileImageAlt: {
+    en: 'sadah sitting on a rock above a mountain landscape.',
+    ja: '山々を望む岩の上に座る sadah。',
+  },
 };
 
 const subscribers = new Set<(locale: Locale) => void>();
 
 let currentLocale = readStoredLocale();
+applyDocumentLocale(currentLocale);
 
 function isLocale(value: string | null): value is Locale {
   return value === 'en' || value === 'ja';
@@ -117,6 +142,12 @@ function persistLocale(locale: Locale): void {
   }
 }
 
+function applyDocumentLocale(locale: Locale): void {
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = locale;
+  }
+}
+
 export function getLocale(): Locale {
   return currentLocale;
 }
@@ -124,6 +155,7 @@ export function getLocale(): Locale {
 export function setLocale(locale: Locale): void {
   currentLocale = locale;
   persistLocale(locale);
+  applyDocumentLocale(locale);
 
   for (const subscriber of subscribers) {
     subscriber(locale);

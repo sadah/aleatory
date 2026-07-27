@@ -5,6 +5,7 @@ import type { Work } from './types';
 import { getLocale, onLocaleChange, t } from './lib/i18n';
 import { createLocaleToggle } from './lib/locale-toggle';
 import { createPaletteToggle } from './lib/palette-picker';
+import { createSiteFooter } from './lib/site-footer';
 import {
   attachThumbPreview,
   type ThumbPreviewOptions,
@@ -139,6 +140,7 @@ function render(root: HTMLElement): void {
     shell.append(grid);
   }
 
+  shell.append(createSiteFooter());
   root.append(shell);
 
   const applyLocale = (): void => {

@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>aleatory OGP card source</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1200px;
+        height: 630px;
+        margin: 0;
+        overflow: hidden;
+        background: #03040a;
+      }
+
+      .card {
+        position: relative;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #03040a;
+      }
+
+      .card::after {
+        position: absolute;
+        inset: 0;
+        border: 1px solid rgb(159 185 255 / 22%);
+        content: "";
+        pointer-events: none;
+      }
+
+      .blurred-bg {
+        position: absolute;
+        inset: -50px;
+        width: 1300px;
+        height: 730px;
+        object-fit: cover;
+        filter: blur(30px);
+        opacity: 0.42;
+        transform: scale(1.05);
+      }
+
+      .shade {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          rgb(3 4 10 / 20%),
+          rgb(3 4 10 / 72%) 48%,
+          rgb(3 4 10 / 96%)
+        );
+      }
+
+      .art {
+        position: absolute;
+        top: 60px;
+        left: 60px;
+        width: 510px;
+        height: 510px;
+        object-fit: cover;
+        border: 1px solid rgb(159 185 255 / 28%);
+        border-radius: 24px;
+      }
+
+      .copy {
+        position: absolute;
+        top: 148px;
+        right: 54px;
+        width: 506px;
+      }
+
+      .eyebrow {
+        margin: 0;
+        color: #9fb9ff;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 4px;
+      }
+
+      .title {
+        margin: 105px 0 0;
+        color: #e1e8fa;
+        font-size: 62px;
+        font-weight: 700;
+        line-height: 1.14;
+        letter-spacing: -1px;
+      }
+
+      .title.one-line {
+        margin-top: 145px;
+      }
+
+      .byline {
+        position: absolute;
+        right: 54px;
+        bottom: 102px;
+        width: 506px;
+        margin: 0;
+        color: rgb(200 212 245 / 62%);
+        font-size: 24px;
+      }
+
+      .gallery-panels {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .gallery-panels img {
+        width: 400px;
+        height: 630px;
+        object-fit: cover;
+      }
+
+      .gallery-shade {
+        position: absolute;
+        inset: 0;
+        background: rgb(3 4 10 / 68%);
+      }
+
+      .gallery-copy {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        text-align: center;
+      }
+
+      .gallery-title {
+        margin: 0;
+        color: #e1e8fa;
+        font-size: 94px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -2px;
+      }
+
+      .gallery-tagline {
+        margin: 42px 0 0;
+        color: rgb(200 212 245 / 78%);
+        font-size: 24px;
+        letter-spacing: 3px;
+      }
+
+      .gallery-byline {
+        position: absolute;
+        right: 0;
+        bottom: 98px;
+        left: 0;
+        margin: 0;
+        color: rgb(200 212 245 / 58%);
+        font-size: 22px;
+        text-align: center;
+      }
+
+      .about-title {
+        margin-top: 145px;
+        font-size: 92px;
+        letter-spacing: -2px;
+      }
+
+      .about-summary,
+      .about-detail {
+        margin: 0;
+        color: rgb(200 212 245 / 78%);
+      }
+
+      .about-summary {
+        margin-top: 56px;
+        font-size: 30px;
+      }
+
+      .about-detail {
+        margin-top: 14px;
+        color: rgb(200 212 245 / 58%);
+        font-size: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="root"></main>
+    <script type="module">
+      const BASE = import.meta.env.BASE_URL;
+      const cards = {
+        gallery: {
+          kind: 'gallery',
+          images: [
+            `${BASE}thumbs/lorenz-attractor.jpg`,
+            `${BASE}thumbs/prime-spiral.jpg`,
+            `${BASE}thumbs/schotter.jpg`,
+          ],
+        },
+        'lorenz-attractor': {
+          kind: 'work',
+          image: `${BASE}thumbs/lorenz-attractor.jpg`,
+          label: 'STUDY',
+          title: ['Lorenz Attractor'],
+        },
+        'prime-spiral': {
+          kind: 'work',
+          image: `${BASE}thumbs/prime-spiral.jpg`,
+          label: 'STUDY',
+          title: ['Prime Spiral', 'Constellations'],
+        },
+        schotter: {
+          kind: 'work',
+          image: `${BASE}thumbs/schotter.jpg`,
+          label: 'TRIBUTE',
+          title: ['Schotter'],
+        },
+        about: {
+          kind: 'about',
+          image: `${BASE}profile/sadah.jpg`,
+        },
+      };
+
+      const root = document.getElementById('root');
+      const name = new URLSearchParams(location.search).get('card') ?? 'gallery';
+      const card = cards[name];
+
+      if (!card) {
+        throw new Error(`Unknown card: ${name}`);
+      }
+
+      if (card.kind === 'gallery') {
+        root.innerHTML = `
+          <article class="card">
+            <div class="gallery-panels">
+              ${card.images.map((src) => `<img src="${src}" alt="" />`).join('')}
+            </div>
+            <div class="gallery-shade"></div>
+            <div class="gallery-copy">
+              <h1 class="gallery-title">aleatory</h1>
+              <p class="gallery-tagline">CHANCE · MOTION · LIGHT</p>
+            </div>
+            <p class="gallery-byline">Generative art by sadah</p>
+          </article>
+        `;
+      } else if (card.kind === 'about') {
+        root.innerHTML = `
+          <article class="card">
+            <img class="blurred-bg" src="${card.image}" alt="" />
+            <div class="shade"></div>
+            <img class="art" src="${card.image}" alt="" />
+            <div class="copy">
+              <p class="eyebrow">ALEATORY / ABOUT</p>
+              <h1 class="title about-title">sadah</h1>
+              <p class="about-summary">Taking a career break.</p>
+              <p class="about-detail">Ex-AWS, Ex-Mercari</p>
+            </div>
+          </article>
+        `;
+      } else {
+        const oneLine = card.title.length === 1 ? ' one-line' : '';
+        root.innerHTML = `
+          <article class="card">
+            <img class="blurred-bg" src="${card.image}" alt="" />
+            <div class="shade"></div>
+            <img class="art" src="${card.image}" alt="" />
+            <div class="copy">
+              <p class="eyebrow">ALEATORY / ${card.label}</p>
+              <h1 class="title${oneLine}">${card.title.join('<br />')}</h1>
+            </div>
+            <p class="byline">Generative art by sadah</p>
+          </article>
+        `;
+      }
+    </script>
+  </body>
+</html>

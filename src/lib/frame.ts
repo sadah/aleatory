@@ -2,6 +2,7 @@ import type { Work } from '../types';
 import { getLocale, onLocaleChange, t } from './i18n';
 import { createLocaleToggle } from './locale-toggle';
 import { createPaletteToggle } from './palette-picker';
+import { createSiteFooter } from './site-footer';
 import './theme.css';
 import './frame.css';
 
@@ -101,8 +102,8 @@ export function buildFrame(root: HTMLElement, work: Work): FrameHandles {
     }
   }
 
-  const footer = document.createElement('footer');
-  footer.className = 'work-footer';
+  const workActions = document.createElement('div');
+  workActions.className = 'work-actions';
 
   const seedSlot = document.createElement('div');
   seedSlot.className = 'seed-slot';
@@ -110,12 +111,12 @@ export function buildFrame(root: HTMLElement, work: Work): FrameHandles {
   const exportSlot = document.createElement('div');
   exportSlot.className = 'export-slot';
 
-  footer.append(seedSlot, exportSlot);
+  workActions.append(seedSlot, exportSlot);
   root.append(description, header, stageWrap, controlsBar);
   if (about) {
     root.append(about);
   }
-  root.append(footer);
+  root.append(workActions, createSiteFooter());
 
   const renderLocaleText = (): void => {
     const locale = getLocale();

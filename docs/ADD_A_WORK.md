@@ -1,8 +1,9 @@
 # Adding a work
 
-The vertical slice is done, so adding work N+1 is: **one manifest entry + three
-files + a thumbnail.** The gallery and the multi-page build pick it up
-automatically (Vite globs `works/*.html`).
+The vertical slice is done, so adding work N+1 is: **one manifest entry + one
+HTML entry + a core/shell pair + a thumbnail + an OGP card.** The gallery and
+the multi-page build pick up the page automatically (Vite globs
+`works/*.html`).
 
 Pick a `slug` — lowercase kebab-case, e.g. `magnetic-field`. It is used for the
 HTML entry, the sketch module, and the thumbnail filename.
@@ -43,24 +44,18 @@ entry in `src/works.ts` is a worked example.
 
 ## 2. Add the HTML entry
 
-Create `works/<slug>.html` (copy `works/lorenz-attractor.html` and change the
-title + script path):
+Create `works/<slug>.html` by copying `works/lorenz-attractor.html`. Change:
 
-```html
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><Work Title> · aleatory</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/works/<slug>.ts"></script>
-  </body>
-</html>
-```
+- `<title>`, `description`, canonical URL, and author-facing title/description;
+- `og:title`, `og:description`, `og:url`, `og:image`, and `og:image:alt`;
+- the matching `twitter:*` fields;
+- the module script path.
+
+The canonical, `og:url`, and image URL are deliberately absolute production
+URLs (`https://sadah.github.io/aleatory/...`) because social crawlers consume
+the static HTML. Keep `og:image:width="1200"` and `og:image:height="630"`.
+English is the static/default metadata language; keep `en_US` with `ja_JP` as
+its alternate.
 
 ## 3. Add the sketch module — two files, not one
 
@@ -261,7 +256,20 @@ JPEG is preferred for these gradient-heavy dark stills — it keeps each card
 light (~25 KB) where an equivalent PNG is ~15× larger. The gallery references
 `thumbs/<slug>.jpg`.
 
-## 6. Verify
+## 6. Create the sharing card
+
+Add the work to the `cards` object in `scripts/og-cards.html`, using its gallery
+thumbnail, label, and English title. Run the dev server and open:
+
+```text
+http://127.0.0.1:5173/aleatory/scripts/og-cards.html?card=<slug>
+```
+
+Capture the page at exactly 1200×630 CSS pixels with no browser chrome and save
+it as `public/og/<slug>.png`. Confirm the resulting file is exactly 1200×630 and
+that `works/<slug>.html` points at its absolute production URL.
+
+## 7. Verify
 
 ```bash
 npm run build      # tsc typecheck + vite build; the new page must appear in dist/
@@ -271,7 +279,10 @@ npm run preview    # check the card + page under the /aleatory/ base
 Check on desktop Chrome and iPhone Safari (video export is Chrome-only by
 design). Commit, push — the GitHub Actions workflow deploys to Pages.
 
-## 7. Credit the source
+Also inspect the built HTML for the canonical and OGP URLs; a green TypeScript
+build cannot detect a misspelled social image path.
+
+## 8. Credit the source
 
 If the piece re-implements, studies, or pays tribute to an existing system or
 artwork, add an entry to [`CREDITS.md`](../CREDITS.md).

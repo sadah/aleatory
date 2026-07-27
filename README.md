@@ -51,12 +51,13 @@ npm run preview
 
 - `index.html` — the gallery shell; `src/gallery.ts` renders cards from the
   `WORKS` manifest.
+- `about.html` — the bilingual profile page for `sadah`.
 - `works/<slug>.html` + `src/works/<slug>.ts` — one HTML entry and one sketch
   module per work.
 - `src/works.ts` — the `WORKS` manifest, the single source of truth for the
   gallery. Pure data with type-only imports.
 - `src/lib/` — the shared foundation: page frame, controls, i18n, seed RNG,
-  PNG/video export, theme.
+  PNG/video export, palette, and site footer.
 
 **Base-safe URLs (important for Pages).** Vite rewrites `base` for imported
 assets and HTML/CSS `url()`, but **not** for plain runtime path strings. So any
@@ -74,9 +75,17 @@ runtime URL (thumbnails, work links) is built as
 
 ## Adding a work
 
-See [docs/ADD_A_WORK.md](docs/ADD_A_WORK.md). In short: add one entry to
-`src/works.ts`, one `works/<slug>.html`, one `src/works/<slug>.ts`, and capture a
-thumbnail — the gallery and build pick it up automatically.
+See [docs/ADD_A_WORK.md](docs/ADD_A_WORK.md). In short: add one manifest entry,
+one HTML entry, a render core + page shell, a thumbnail, and a 1200×630 sharing
+card — the gallery and build pick up the page automatically.
+
+## Sharing metadata
+
+The gallery, profile, and every work page carry static Open Graph and X card
+metadata in their HTML `<head>`. Sharing images live in `public/og/`; their
+reproducible browser-rendered source is `scripts/og-cards.html`. Metadata is
+English-first to match the site's default locale, with Japanese declared as an
+alternate locale.
 
 ## Documentation
 

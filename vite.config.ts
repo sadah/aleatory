@@ -9,6 +9,7 @@ const worksDir = resolve(rootDir, 'works');
 function pageInputs(): Record<string, string> {
   const input: Record<string, string> = {
     index: resolve(rootDir, 'index.html'),
+    about: resolve(rootDir, 'about.html'),
   };
 
   try {

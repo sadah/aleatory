@@ -12,11 +12,14 @@ single source of truth for the gallery.
 ```
 aleatory/
 ├─ index.html                  # gallery shell
+├─ about.html                  # bilingual profile page
 ├─ works/
 │  └─ lorenz-attractor.html    # one HTML entry per work
 ├─ src/
+│  ├─ site.ts                  # author, profile copy, external links
 │  ├─ works.ts                 # WORKS manifest (pure data, type-only imports)
 │  ├─ types.ts                 # Work, Locale, Label
+│  ├─ about.ts + about.css     # profile page
 │  ├─ gallery.ts + gallery.css # renders index cards (base-safe URLs)
 │  ├─ works/
 │  │  └─ lorenz-attractor.ts   # the sketch (p5 instance mode, fixed-timestep)
@@ -27,10 +30,14 @@ aleatory/
 │     ├─ export-video.ts       # MediaRecorder -> WebM, 9:16 compositing
 │     ├─ seed.ts               # deterministic RNG + seed UI
 │     ├─ i18n.ts               # en/ja strings + locale toggle (persisted)
+│     ├─ site-footer.ts + .css # footer shared by every public page
 │     └─ theme.css             # dark design tokens
 ├─ public/
 │  ├─ favicon.svg
+│  ├─ profile/sadah.jpg        # profile portrait
+│  ├─ og/*.png                 # 1200×630 sharing cards
 │  └─ thumbs/<slug>.jpg        # gallery thumbnails (captured stills)
+├─ scripts/og-cards.html       # browser-rendered OGP image source
 ├─ .github/workflows/deploy.yml
 ├─ vite.config.ts              # inputs from glob('works/*.html'); base '/aleatory/'
 └─ tsconfig.json               # strict; noEmit (tsc = typecheck gate)
@@ -100,9 +107,12 @@ to minting a fresh seed when the user clicks "New seed".
 
 ## Shared library
 
-- **frame.ts** — builds the standard page (sr-only description, header with title
-  + label chip, square stage, controls bar, footer with seed/export slots and the
-  locale toggle) and re-renders text in place on locale change.
+- **frame.ts** — builds the standard work page (sr-only description, header with
+  title + label chip, square stage, controls, About section, and the seed/export
+  action row) and re-renders text in place on locale change.
+- **site-footer.ts** — builds the shared Gallery / About / external-links /
+  copyright footer. The work page's seed/export row is a separate control area,
+  not the semantic site footer.
 - **controls.ts** — framework-agnostic slider / button / toggle factory.
 - **i18n.ts** — `en`/`ja` string table, `t(key)`, locale persisted in
   `localStorage`, subscriber notification so the frame and sketches relabel live.
@@ -163,9 +173,22 @@ orange under Terracotta — still distinguishable, but no longer learnable.
 
 ## Build and deploy
 
-`vite.config.ts` derives `rollupOptions.input` by globbing `works/*.html` (plus
-`index.html`) at config time — it never imports `src/works.ts`, keeping the Node
-config free of any browser-global import. `base` is `/aleatory/`.
+`vite.config.ts` derives work inputs by globbing `works/*.html` and adds the two
+root entries (`index.html` and `about.html`) at config time — it never imports
+`src/works.ts`, keeping the Node config free of any browser-global import.
+`base` is `/aleatory/`.
+
+## Sharing metadata
+
+Open Graph, canonical, description, and X card tags are static in each HTML
+entry. Social crawlers do not depend on the client-side locale or JavaScript,
+so the metadata uses the English default and declares Japanese as an alternate
+locale. Every page points at an absolute production URL and a 1200×630 PNG under
+`public/og/`.
+
+`scripts/og-cards.html` is the visual source for those PNGs. It uses the existing
+thumbnail or profile portrait and the same dark/glow design language; it is a
+development aid rather than a Vite build input.
 
 `.github/workflows/deploy.yml` runs `npm ci` + `npm run build` and deploys `dist/`
 to GitHub Pages via `upload-pages-artifact` + `deploy-pages`, with
